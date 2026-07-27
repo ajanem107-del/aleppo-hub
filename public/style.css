@@ -1,4 +1,173 @@
-border-radius: 25px;
+/* ===== التصميم العصري ===== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Calibri', 'Tahoma', 'Segoe UI', sans-serif;
+    background: #f4f7f9;
+    color: #1e2a3a;
+    direction: rtl;
+    min-height: 100vh;
+}
+
+/* ===== شريط التنقل ===== */
+.navbar {
+    background: #ffffff;
+    box-shadow: 0 2px 15px rgba(0, 0, 0, 0.06);
+    padding: 12px 40px;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.nav-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.nav-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.logo-text { color: #1e2a3a; }
+.gold { color: #c9a03d; }
+.logo-icon { font-size: 1.8rem; }
+
+.nav-links {
+    display: flex;
+    gap: 25px;
+    align-items: center;
+}
+.nav-links a {
+    text-decoration: none;
+    color: #4a5a6a;
+    font-weight: 500;
+    transition: 0.3s;
+}
+.nav-links a:hover { color: #c9a03d; }
+.nav-links a.active { color: #c9a03d; border-bottom: 2px solid #c9a03d; }
+
+.nav-auth { display: flex; gap: 12px; }
+.btn-outline-nav {
+    padding: 8px 22px;
+    border: 2px solid #c9a03d;
+    border-radius: 30px;
+    color: #c9a03d;
+    text-decoration: none;
+    font-weight: 600;
+    transition: 0.3s;
+}
+.btn-outline-nav:hover { background: #c9a03d; color: #fff; }
+.btn-primary-nav {
+    padding: 8px 22px;
+    background: #c9a03d;
+    border-radius: 30px;
+    color: #fff;
+    text-decoration: none;
+    font-weight: 600;
+    transition: 0.3s;
+}
+.btn-primary-nav:hover { background: #b8922a; transform: translateY(-2px); }
+
+/* ===== الصفحة الرئيسية ===== */
+.hero {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 80vh;
+    text-align: center;
+    padding: 20px;
+    background: linear-gradient(145deg, #ffffff, #f0f4f7);
+}
+
+.hero-content h1 {
+    font-size: 3.5rem;
+    color: #1e2a3a;
+    margin-bottom: 15px;
+}
+.hero-sub {
+    font-size: 1.3rem;
+    color: #5a6a7a;
+    margin-bottom: 40px;
+}
+.hero-actions {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+.btn-hero {
+    padding: 16px 45px;
+    border-radius: 60px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: 0.3s;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.06);
+    border: none;
+    cursor: pointer;
+}
+.btn-hero:hover { transform: translateY(-5px); box-shadow: 0 12px 35px rgba(0, 0, 0, 0.1); }
+.btn-hero.industrial { background: #2a5a3a; color: #fff; }
+.btn-hero.industrial:hover { background: #3a7a4a; }
+.btn-hero.worker { background: #2a6b8a; color: #fff; }
+.btn-hero.worker:hover { background: #3a8baa; }
+.btn-hero.provider { background: #c9a03d; color: #fff; }
+.btn-hero.provider:hover { background: #dab04d; }
+
+.features {
+    max-width: 1200px;
+    margin: 60px auto;
+    padding: 0 20px;
+}
+.features h2 {
+    text-align: center;
+    font-size: 2.2rem;
+    color: #1e2a3a;
+    margin-bottom: 40px;
+}
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+}
+.feature-card {
+    background: #fff;
+    padding: 35px 25px;
+    border-radius: 25px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.04);
+    text-align: center;
+    transition: 0.3s;
+}
+.feature-card:hover { transform: translateY(-8px); box-shadow: 0 15px 40px rgba(0, 0, 0, 0.06); }
+.feature-icon { font-size: 3.5rem; margin-bottom: 15px; }
+.feature-card h3 { color: #1e2a3a; margin-bottom: 10px; }
+.feature-card p { color: #5a6a7a; line-height: 1.7; }
+
+/* ===== لوحات التحكم ===== */
+.dashboard-container {
+    display: flex;
+    max-width: 1400px;
+    margin: 30px auto;
+    padding: 0 20px;
+    gap: 30px;
+    min-height: 80vh;
+}
+
+.sidebar-modern {
+    width: 280px;
+    background: #ffffff;
+    border-radius: 25px;
     padding: 25px 20px;
     box-shadow: 0 5px 25px rgba(0, 0, 0, 0.04);
     height: fit-content;
