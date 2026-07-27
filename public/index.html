@@ -7,358 +7,70 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="container">
-    <div class="layout-grid">
-        <!-- ===== الشريط الجانبي الأيمن (الأزرار العمودية) ===== -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <h2>🏭 Aleppo Hub</h2>
-                <p style="color:#b8a06a; font-size:0.85rem;">المدينة الصناعية بحلب</p>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <span class="logo-icon">🏭</span>
+                <span class="logo-text">Aleppo <span class="gold">Hub</span></span>
             </div>
-            <nav class="sidebar-nav">
-                <a href="/dashboard.html" class="sidebar-btn">📊 لوحة التحكم</a>
-                <button class="sidebar-btn" onclick="document.getElementById('authSection').style.display='block'">🔑 تسجيل الدخول</button>
-                <button class="sidebar-btn" onclick="document.getElementById('authSection').style.display='block'">📝 إنشاء حساب</button>
-                <div class="sidebar-divider"></div>
-                <button class="sidebar-btn tab-btn-side" data-tab="products">📦 المنتجات</button>
-                <button class="sidebar-btn tab-btn-side" data-tab="jobs">💼 الوظائف</button>
-                <button class="sidebar-btn tab-btn-side" data-tab="services">🛠️ الخدمات</button>
-            </nav>
-            <div class="sidebar-footer">
-                <p style="color:#6a8a6a; font-size:0.7rem;">تصميم عبدالرزاق جانم © 2026</p>
+            <div class="nav-links">
+                <a href="/" class="active">الرئيسية</a>
+                <a href="#features">المميزات</a>
+                <a href="#about">عن المنصة</a>
             </div>
-        </aside>
-
-        <!-- ===== المحتوى الرئيسي (اليسار) ===== -->
-        <main class="main-content">
-            <!-- قسم المصادقة (يظهر منبثقاً) -->
-            <div id="authSection" style="display:none;" class="auth-box">
-                <h3 style="text-align:center; color:#f0d080;">تسجيل الدخول</h3>
-                <form id="loginForm">
-                    <div class="form-group">
-                        <label>📧 البريد الإلكتروني</label>
-                        <input type="email" id="loginEmail" required>
-                    </div>
-                    <div class="form-group">
-                        <label>🔑 كلمة المرور</label>
-                        <input type="password" id="loginPassword" required>
-                    </div>
-                    <button type="submit" style="width:100%;">دخول</button>
-                    <p style="margin-top:14px; text-align:center; color:#b8a06a; font-size:0.95rem;">
-                        ليس لديك حساب؟
-                        <a href="#" onclick="document.getElementById('registerForm').style.display='block'; this.parentElement.style.display='none';" style="color:#d4a843; font-weight:600;">سجل الآن</a>
-                    </p>
-                </form>
-                <form id="registerForm" style="display:none; margin-top:20px;">
-                    <h3 style="text-align:center; color:#f0d080;">📝 إنشاء حساب جديد</h3>
-                    <div class="form-group"><label>👤 الاسم</label><input type="text" id="regName" required></div>
-                    <div class="form-group"><label>📧 البريد الإلكتروني</label><input type="email" id="regEmail" required></div>
-                    <div class="form-group"><label>🔑 كلمة المرور</label><input type="password" id="regPassword" required></div>
-                    <div class="form-group"><label>📞 رقم الهاتف</label><input type="text" id="regPhone"></div>
-                    <div class="form-group">
-                        <label>🎯 الدور</label>
-                        <select id="regRole">
-                            <option value="worker">👷 عامل</option>
-                            <option value="industrial">🏭 صناعي</option>
-                            <option value="provider">🛠️ مقدم خدمة</option>
-                        </select>
-                    </div>
-                    <div class="form-group" id="companyField"><label>🏢 اسم الشركة (للصناعي)</label><input type="text" id="regCompany"></div>
-                    <button type="submit" style="width:100%;">إنشاء حساب</button>
-                </form>
-                <div id="authMessage"></div>
+            <div class="nav-auth">
+                <a href="/login.html" class="btn-outline-nav">تسجيل الدخول</a>
+                <a href="/register.html" class="btn-primary-nav">إنشاء حساب</a>
             </div>
+        </div>
+    </nav>
 
-            <!-- المحتوى الديناميكي -->
-            <div id="contentArea">
-                <div id="productsTab" class="tab-content"></div>
-                <div id="jobsTab" class="tab-content" style="display:none;"></div>
-                <div id="servicesTab" class="tab-content" style="display:none;"></div>
+    <section class="hero">
+        <div class="hero-content">
+            <h1>منصة <span class="gold">Aleppo Hub</span></h1>
+            <p class="hero-sub">بوابتك الذكية للصناعة والتوظيف والخدمات في مدينة حلب الصناعية</p>
+            <div class="hero-actions">
+                <a href="/industrial-panel.html" class="btn-hero industrial">🏭 صناعي</a>
+                <a href="/worker-panel.html" class="btn-hero worker">👷 طالب توظيف</a>
+                <a href="/provider-panel.html" class="btn-hero provider">📢 معلن</a>
             </div>
+        </div>
+    </section>
 
-            <!-- الإعلانات الخارجية -->
-            <div id="externalAdsSection" style="margin-top:30px;">
-                <h3 class="ads-section-title">📢 إعلانات ممولة</h3>
-                <div id="externalAdsDisplay">
-                    <p style="color:#b8a06a; text-align:center;">جاري التحميل...</p>
-                </div>
+    <section id="features" class="features">
+        <h2>ماذا تقدم المنصة؟</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">🏭</div>
+                <h3>للصناعيين</h3>
+                <p>اعرض منتجاتك، وانشر وظائفك، واستقبل طلبات التوظيف من العمال المهرة.</p>
             </div>
-        </main>
-    </div>
-</div>
+            <div class="feature-card">
+                <div class="feature-icon">👷</div>
+                <h3>لطالبي التوظيف</h3>
+                <p>ابحث عن فرص عمل مناسبة، وقدم طلباتك، وتواصل مع الصناعيين مباشرة.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📢</div>
+                <h3>للمعلنين</h3>
+                <p>انشر خدماتك الإعلانية المدفوعة، واستقبل طلبات العملاء بكل سهولة.</p>
+            </div>
+        </div>
+    </section>
 
-<script>
-// ============================================================
-// التحكم في التبويبات عبر الأزرار الجانبية
-// ============================================================
-document.querySelectorAll('.tab-btn-side').forEach(btn => {
-    btn.addEventListener('click', function() {
-        const tab = this.dataset.tab;
-        // إخفاء كل المحتوى
-        document.querySelectorAll('.tab-content').forEach(t => t.style.display = 'none');
-        // إظهار التبويب المختار
-        document.getElementById(tab + 'Tab').style.display = 'block';
-        // تحديث حالة الأزرار
-        document.querySelectorAll('.tab-btn-side').forEach(b => b.classList.remove('active'));
-        this.classList.add('active');
-        // تحميل البيانات إذا لزم الأمر
-        if (tab === 'products') fetchProducts();
-        else if (tab === 'jobs') fetchJobs();
-        else if (tab === 'services') fetchServices();
-    });
-});
+    <footer>
+        <p>تصميم <strong>عبدالرزاق جانم</strong> © 2026</p>
+    </footer>
 
-// ============================================================
-// جلب وعرض المنتجات (النشطة فقط)
-// ============================================================
-async function fetchProducts() {
-    const div = document.getElementById('productsTab');
-    try {
-        const res = await fetch('/api/products');
-        const data = await res.json();
-        if (!Array.isArray(data) || data.length === 0) {
-            div.innerHTML = `<div style="text-align:center;padding:40px 0;color:#b8a06a;">
-                <div style="font-size:3rem;margin-bottom:10px;">📦</div>
-                <p style="font-size:1.1rem;">لا توجد منتجات حالياً</p>
-                <p style="font-size:0.85rem;color:#6a8a6a;">عند إضافة منتجات ستظهر هنا</p>
-            </div>`;
-            return;
-        }
-        let html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">';
-        data.forEach(p => {
-            let imageHtml = '';
-            if (p.image_url && p.image_url.startsWith('http')) {
-                imageHtml = `<img src="${p.image_url}" style="max-width:100%;max-height:150px;border-radius:12px;margin-top:10px;border:1px solid rgba(212,168,67,0.1);" onerror="this.style.display='none'">`;
-            }
-            html += `<div class="card">
-                <h3 style="color:#f0d080;font-size:1.2rem;">${p.name}</h3>
-                <p style="color:#b8a06a;font-size:0.95rem;">${p.description || ''}</p>
-                <p><strong style="color:#d4a843;">💰 السعر:</strong> <span style="color:#e8c77a;">${p.price || 'حسب الطلب'} $</span></p>
-                <p><strong style="color:#d4a843;">🏭 الصناعي:</strong> <span style="color:#b8a06a;">${p.industrial_id?.company_name || p.industrial_id?.name || 'غير معروف'}</span></p>
-                ${imageHtml}
-                <div style="margin-top:12px;">
-                    <button class="btn btn-sm" onclick="showContact('${p._id}')">📞 شراء المنتج - التواصل</button>
-                </div>
-                <div id="contact_${p._id}" style="margin-top:10px; background:rgba(255,255,255,0.04); padding:12px; border-radius:12px; display:none;"></div>
-            </div>`;
+    <script>
+        // تعطيل الروابط المؤقتة التي تتطلب تسجيل دخول (يمكنك تفعيلها لاحقاً)
+        document.querySelectorAll('.btn-hero').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                if (!confirm('سيتم توجيهك إلى لوحة التحكم. هل أنت مسجل الدخول؟')) {
+                    e.preventDefault();
+                }
+            });
         });
-        html += '</div>';
-        div.innerHTML = html;
-    } catch(e) { 
-        div.innerHTML = '<p style="color:#d4a843;text-align:center;">⚠️ خطأ في التحميل</p>';
-        console.error(e);
-    }
-}
-
-// ============================================================
-// عرض معلومات التواصل
-// ============================================================
-async function showContact(productId) {
-    const div = document.getElementById(`contact_${productId}`);
-    if (div.style.display === 'block') {
-        div.style.display = 'none';
-        return;
-    }
-    try {
-        const res = await fetch(`/api/product-contact/${productId}`);
-        const data = await res.json();
-        if (!res.ok) {
-            div.innerHTML = `<p style="color:#f0a8a0;">${data.error || 'لا يمكن عرض معلومات التواصل'}</p>`;
-        } else {
-            div.innerHTML = `
-                <p><strong style="color:#d4a843;">🏢 الشركة:</strong> ${data.company}</p>
-                <p><strong style="color:#d4a843;">👤 الصناعي:</strong> ${data.industrial_name}</p>
-                <p><strong style="color:#d4a843;">📞 الهاتف:</strong> ${data.phone}</p>
-                <p><strong style="color:#d4a843;">📧 البريد:</strong> ${data.email}</p>
-                <p style="color:#b8a06a;font-size:0.8rem;">✉️ تواصل مباشر مع الصناعي</p>
-            `;
-        }
-        div.style.display = 'block';
-    } catch(e) {
-        div.innerHTML = '<p style="color:#f0a8a0;">⚠️ خطأ في تحميل المعلومات</p>';
-        div.style.display = 'block';
-    }
-}
-
-// ============================================================
-// جلب وعرض الوظائف
-// ============================================================
-async function fetchJobs() {
-    const div = document.getElementById('jobsTab');
-    try {
-        const res = await fetch('/api/jobs');
-        const data = await res.json();
-        if (!Array.isArray(data) || data.length === 0) {
-            div.innerHTML = `<div style="text-align:center;padding:40px 0;color:#b8a06a;">
-                <div style="font-size:3rem;margin-bottom:10px;">💼</div>
-                <p style="font-size:1.1rem;">لا توجد وظائف حالياً</p>
-                <p style="font-size:0.85rem;color:#6a8a6a;">عند نشر وظائف ستظهر هنا</p>
-            </div>`;
-            return;
-        }
-        let html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">';
-        data.forEach(j => {
-            html += `<div class="card">
-                <h3 style="color:#f0d080;font-size:1.2rem;">${j.title}</h3>
-                <p style="color:#b8a06a;font-size:0.95rem;">${j.description}</p>
-                <p><strong style="color:#d4a843;">📋 المتطلبات:</strong> <span style="color:#b8a06a;">${j.requirements || 'غير محددة'}</span></p>
-                <p><strong style="color:#d4a843;">💰 الراتب:</strong> <span style="color:#e8c77a;">${j.salary || 'حسب الاتفاق'}</span></p>
-                <p><strong style="color:#d4a843;">📍 الموقع:</strong> <span style="color:#b8a06a;">${j.location || 'غير محدد'}</span></p>
-                <p><strong style="color:#d4a843;">🏭 الناشر:</strong> <span style="color:#b8a06a;">${j.industrial_id?.company_name || j.industrial_id?.name || 'غير معروف'}</span></p>
-            </div>`;
-        });
-        html += '</div>';
-        div.innerHTML = html;
-    } catch(e) { 
-        div.innerHTML = '<p style="color:#d4a843;text-align:center;">⚠️ خطأ في التحميل</p>';
-        console.error(e);
-    }
-}
-
-// ============================================================
-// جلب وعرض الخدمات
-// ============================================================
-async function fetchServices() {
-    const div = document.getElementById('servicesTab');
-    try {
-        const res = await fetch('/api/services');
-        const data = await res.json();
-        if (!Array.isArray(data) || data.length === 0) {
-            div.innerHTML = `<div style="text-align:center;padding:40px 0;color:#b8a06a;">
-                <div style="font-size:3rem;margin-bottom:10px;">🛠️</div>
-                <p style="font-size:1.1rem;">لا توجد خدمات حالياً</p>
-                <p style="font-size:0.85rem;color:#6a8a6a;">عند إضافة خدمات ستظهر هنا</p>
-            </div>`;
-            return;
-        }
-        let html = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">';
-        data.forEach(s => {
-            let imageHtml = '';
-            if (s.image_url && s.image_url.startsWith('http')) {
-                imageHtml = `<img src="${s.image_url}" style="max-width:100%;max-height:150px;border-radius:12px;margin-top:10px;border:1px solid rgba(212,168,67,0.1);" onerror="this.style.display='none'">`;
-            }
-            html += `<div class="card">
-                <h3 style="color:#f0d080;font-size:1.2rem;">${s.title}</h3>
-                <p style="color:#b8a06a;font-size:0.95rem;">${s.description}</p>
-                <p><strong style="color:#d4a843;">📂 التصنيف:</strong> <span style="color:#b8a06a;">${s.category}</span></p>
-                <p><strong style="color:#d4a843;">💰 نطاق السعر:</strong> <span style="color:#e8c77a;">${s.price_range || 'حسب الاتفاق'}</span></p>
-                <p><strong style="color:#d4a843;">👤 المقدم:</strong> <span style="color:#b8a06a;">${s.provider_id?.name || 'غير معروف'}</span></p>
-                ${imageHtml}
-            </div>`;
-        });
-        html += '</div>';
-        div.innerHTML = html;
-    } catch(e) { 
-        div.innerHTML = '<p style="color:#d4a843;text-align:center;">⚠️ خطأ في التحميل</p>';
-        console.error(e);
-    }
-}
-
-// ============================================================
-// جلب الإعلانات الخارجية
-// ============================================================
-async function loadExternalAdsPublic() {
-    try {
-        const res = await fetch('/api/external-ads');
-        const data = await res.json();
-        const div = document.getElementById('externalAdsDisplay');
-        if (!data || data.length === 0) {
-            div.innerHTML = `<div style="text-align:center;padding:20px 0;color:#b8a06a;width:100%;">
-                <div style="font-size:2.5rem;margin-bottom:8px;">📢</div>
-                <p>لا توجد إعلانات حالياً</p>
-            </div>`;
-            return;
-        }
-        let html = '<div style="display:flex;flex-wrap:wrap;gap:20px;justify-content:center;">';
-        data.forEach(ad => {
-            let imageHtml = '';
-            if (ad.image_url && ad.image_url.startsWith('http')) {
-                imageHtml = `<img src="${ad.image_url}" style="max-width:100%;max-height:120px;border-radius:12px;border:1px solid rgba(212,168,67,0.1);" onerror="this.style.display='none'">`;
-            }
-            html += `<div class="card" style="width:280px; text-align:center;">
-                ${imageHtml}
-                <h4 style="color:#f0d080;margin:10px 0 5px;">${ad.title}</h4>
-                <p style="color:#b8a06a;font-size:0.9rem;">${ad.description || ''}</p>
-                ${ad.link_url ? `<a href="${ad.link_url}" target="_blank" class="btn btn-sm" style="text-decoration:none;display:inline-block;margin:8px 0;">🔗 زيارة الإعلان</a>` : ''}
-                <p style="color:#b8a06a;font-size:0.7rem;margin-top:5px;">📞 ${ad.advertiser_phone || ''}</p>
-            </div>`;
-        });
-        html += '</div>';
-        div.innerHTML = html;
-    } catch(e) {
-        document.getElementById('externalAdsDisplay').innerHTML = '<p style="color:#d4a843;text-align:center;">⚠️ خطأ في تحميل الإعلانات</p>';
-        console.error(e);
-    }
-}
-
-// ============================================================
-// دوال المصادقة
-// ============================================================
-document.getElementById('loginForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
-    try {
-        const res = await fetch('/api/login', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password })
-        });
-        const data = await res.json();
-        if (res.ok) {
-            document.getElementById('authMessage').innerHTML = `<div class="alert alert-success">${data.message} مرحباً ${data.user.name}!</div>`;
-            setTimeout(() => window.location.href = '/dashboard.html', 1500);
-        } else {
-            document.getElementById('authMessage').innerHTML = `<div class="alert alert-error">${data.error}</div>`;
-        }
-    } catch(err) {
-        document.getElementById('authMessage').innerHTML = `<div class="alert alert-error">خطأ في الاتصال بالخادم</div>`;
-    }
-});
-
-document.getElementById('registerForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const data = {
-        name: document.getElementById('regName').value,
-        email: document.getElementById('regEmail').value,
-        password: document.getElementById('regPassword').value,
-        phone: document.getElementById('regPhone').value,
-        role: document.getElementById('regRole').value,
-        company_name: document.getElementById('regCompany').value
-    };
-    try {
-        const res = await fetch('/api/register', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        const result = await res.json();
-        if (res.ok) {
-            document.getElementById('authMessage').innerHTML = `<div class="alert alert-success">${result.message}. يمكنك تسجيل الدخول الآن.</div>`;
-            document.getElementById('registerForm').reset();
-            document.getElementById('registerForm').style.display = 'none';
-            document.getElementById('loginForm').style.display = 'block';
-        } else {
-            document.getElementById('authMessage').innerHTML = `<div class="alert alert-error">${result.error}</div>`;
-        }
-    } catch(err) {
-        document.getElementById('authMessage').innerHTML = `<div class="alert alert-error">خطأ في الاتصال بالخادم</div>`;
-    }
-});
-
-document.getElementById('regRole').addEventListener('change', function() {
-    document.getElementById('companyField').style.display = this.value === 'industrial' ? 'block' : 'none';
-});
-
-// ============================================================
-// تحميل البيانات عند فتح الصفحة (المنتجات افتراضياً)
-// ============================================================
-document.addEventListener('DOMContentLoaded', function() {
-    // تفعيل تبويب المنتجات افتراضياً
-    document.querySelector('.tab-btn-side[data-tab="products"]')?.classList.add('active');
-    fetchProducts();
-    loadExternalAdsPublic();
-});
-</script>
+    </script>
 </body>
 </html>

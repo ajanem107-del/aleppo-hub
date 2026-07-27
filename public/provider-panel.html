@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة المعلن - Aleppo Hub</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo"><span class="logo-icon">🏭</span><span class="logo-text">Aleppo <span class="gold">Hub</span></span></div>
+            <div class="nav-links"><a href="/">الرئيسية</a><a href="#" onclick="logout()" style="color:#c0392b;">تسجيل الخروج</a></div>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <aside class="sidebar-modern">
+            <div class="user-profile">
+                <div class="avatar">📢</div>
+                <h3 id="userName">معلن</h3>
+                <p id="userEmail">provider@example.com</p>
+            </div>
+            <nav class="sidebar-menu">
+                <a href="#" class="menu-item active" data-section="services">🛠️ خدماتي</a>
+                <a href="#" class="menu-item" data-section="requests">📩 طلبات الخدمات</a>
+                <a href="#" class="menu-item" data-section="add-service">➕ إضافة خدمة</a>
+            </nav>
+        </aside>
+
+        <main class="content-modern">
+            <div id="dashboardContent">
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-card"><span id="statServices">0</span><small>خدماتي</small></div>
+                    <div class="stat-card"><span id="statRequests">0</span><small>طلبات واردة</small></div>
+                </div>
+                <div id="sectionContent"></div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.getElementById('userName').textContent = 'خالد المعلن';
+        document.getElementById('userEmail').textContent = 'khaled@provider.com';
+
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                const section = this.dataset.section;
+                const content = document.getElementById('sectionContent');
+                if (section === 'services') content.innerHTML = '<h2>🛠️ خدماتي</h2><div class="card"><p>جاري التحميل...</p></div>';
+                else if (section === 'requests') content.innerHTML = '<h2>📩 طلبات الخدمات</h2><div class="card"><p>جاري التحميل...</p></div>';
+                else if (section === 'add-service') content.innerHTML = '<h2>➕ إضافة خدمة جديدة</h2><div class="card"><form><div class="form-group"><label>عنوان الخدمة</label><input type="text"></div><div class="form-group"><label>التصنيف</label><select><option>مقاولات</option><option>صيانة</option></select></div><div class="form-group"><label>الوصف</label><textarea rows="2"></textarea></div><button>نشر الخدمة</button></form></div>';
+            });
+        });
+
+        function logout() { if (confirm('تسجيل الخروج؟')) window.location.href = '/'; }
+        document.querySelector('.menu-item[data-section="services"]').click();
+    </script>
+</body>
+</html>

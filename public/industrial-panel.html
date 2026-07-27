@@ -1,0 +1,44 @@
+else if (section === 'applications') content.innerHTML = '<h2>📩 طلبات التوظيف</h2><div class="card"><p>جاري التحميل...</p></div>';
+                else if (section === 'add-product') {
+                    content.innerHTML = 
+                        <h2>➕ إضافة منتج جديد</h2>
+                        <div class="card"><form id="productForm">
+                            <div class="form-group"><label>اسم المنتج</label><input type="text" id="prodName" required></div>
+                            <div class="form-group"><label>الوصف</label><textarea id="prodDesc"></textarea></div>
+                            <div class="form-group"><label>السعر ($)</label><input type="number" id="prodPrice"></div>
+                            <div class="form-group"><label>رابط الصورة</label><input type="text" id="prodImage"></div>
+                            <button type="submit">نشر المنتج</button>
+                        </form></div>
+                    ;
+                    document.getElementById('productForm').addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        alert('✅ تم إضافة المنتج (ينتظر موافقة الإدارة)');
+                    });
+                } else if (section === 'add-job') {
+                    content.innerHTML = 
+                        <h2>➕ نشر وظيفة جديدة</h2>
+                        <div class="card"><form id="jobForm">
+                            <div class="form-group"><label>عنوان الوظيفة</label><input type="text" id="jobTitle" required></div>
+                            <div class="form-group"><label>الوصف</label><textarea id="jobDesc"></textarea></div>
+                            <div class="form-group"><label>الراتب</label><input type="text" id="jobSalary"></div>
+                            <button type="submit">نشر الوظيفة</button>
+                        </form></div>
+                    ;
+                    document.getElementById('jobForm').addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        alert('✅ تم نشر الوظيفة بنجاح');
+                    });
+                }
+            });
+        });
+
+        function logout() {
+            if (confirm('تسجيل الخروج؟')) window.location.href = '/';
+        }
+
+        loadIndustrialData();
+        // تفعيل القسم الأول
+        document.querySelector('.menu-item[data-section="products"]').click();
+    </script>
+</body>
+</html>

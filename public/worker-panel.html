@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة طالب التوظيف - Aleppo Hub</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo"><span class="logo-icon">🏭</span><span class="logo-text">Aleppo <span class="gold">Hub</span></span></div>
+            <div class="nav-links"><a href="/">الرئيسية</a><a href="#" onclick="logout()" style="color:#c0392b;">تسجيل الخروج</a></div>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <aside class="sidebar-modern">
+            <div class="user-profile">
+                <div class="avatar">👷</div>
+                <h3 id="userName">طالب توظيف</h3>
+                <p id="userEmail">worker@example.com</p>
+            </div>
+            <nav class="sidebar-menu">
+                <a href="#" class="menu-item active" data-section="profile">📝 ملفي الشخصي</a>
+                <a href="#" class="menu-item" data-section="jobs">💼 الوظائف المتاحة</a>
+                <a href="#" class="menu-item" data-section="applications">📋 طلباتي</a>
+                <a href="#" class="menu-item" data-section="service-request">🛠️ طلب خدمة</a>
+            </nav>
+        </aside>
+
+        <main class="content-modern">
+            <div id="dashboardContent">
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-card"><span id="statJobs">0</span><small>وظائف متاحة</small></div>
+                    <div class="stat-card"><span id="statApplied">0</span><small>طلباتي المقدمة</small></div>
+                </div>
+                <div id="sectionContent"></div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.getElementById('userName').textContent = 'محمد العامل';
+        document.getElementById('userEmail').textContent = 'mohamed@worker.com';
+
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                const section = this.dataset.section;
+                const content = document.getElementById('sectionContent');
+                if (section === 'profile') content.innerHTML = '<h2>📝 ملفي الشخصي</h2><div class="card"><form><div class="form-group"><label>المهارات</label><input type="text" placeholder="لحام، كهرباء"></div><div class="form-group"><label>الخبرات</label><textarea rows="2"></textarea></div><button>تحديث الملف</button></form></div>';
+                else if (section === 'jobs') content.innerHTML = '<h2>💼 الوظائف المتاحة</h2><div class="card"><p>جاري التحميل...</p></div>';
+                else if (section === 'applications') content.innerHTML = '<h2>📋 طلباتي المقدمة</h2><div class="card"><p>جاري التحميل...</p></div>';
+                else if (section === 'service-request') content.innerHTML = '<h2>🛠️ طلب خدمة</h2><div class="card"><form><div class="form-group"><label>معرف الخدمة</label><input type="text"></div><div class="form-group"><label>الرسالة</label><textarea rows="2"></textarea></div><button>إرسال الطلب</button></form></div>';
+            });
+        });
+
+        function logout() { if (confirm('تسجيل الخروج؟')) window.location.href = '/'; }
+        document.querySelector('.menu-item[data-section="profile"]').click();
+    </script>
+</body>
+</html>
