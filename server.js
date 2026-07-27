@@ -16,7 +16,7 @@ mongoose.connect(MONGODB_URI)
   .then(() => console.log('✅ تم الاتصال بـ MongoDB بنجاح'))
   .catch(err => console.error('❌ فشل الاتصال:', err));
 
-// إعداد رفع الملفات
+// ===== إعداد رفع الملفات =====
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         const uploadPath = 'public/uploads/';
@@ -40,6 +40,7 @@ const fileFilter = (req, file, cb) => {
 };
 const upload = multer({ storage, fileFilter, limits: { fileSize: 50 * 1024 * 1024 } });
 
+// ===== Middleware =====
 app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
@@ -81,7 +82,31 @@ function isRole(role) {
     };
 }
 
-// حماية جميع اللوحات
+// ============================================================
+// ⭐⭐⭐ التعديل الجديد: إعادة توجيه الصفحة الرئيسية إلى تسجيل الدخول ⭐⭐⭐
+// ============================================================
+app.get('/', (req, res) => {
+    if (req.session.userId) {
+        // إذا كان المستخدم مسجلاً، توجه إلى اللوحة المناسبة لدوره
+        User.findById(req.session.userId).then(user => {
+            if (!user) return res.redirect('/login.html');
+            const roleMap = {
+                'admin': '/admin-dashboard.html',
+                'industrial': '/industrial-panel.html',
+                'worker': '/worker-panel.html',
+                'provider': '/provider-panel.html'
+            };
+            res.redirect(roleMap[user.role] || '/');
+        }).catch(() => res.redirect('/login.html'));
+    } else {
+        // إذا لم يكن مسجلاً، توجه إلى صفحة تسجيل الدخول
+        res.redirect('/login.html');
+    }
+});
+
+// ============================================================
+// حماية جميع اللوحات (تتطلب تسجيل الدخول)
+// ============================================================
 app.get('/industrial-panel.html', requireAuth);
 app.get('/worker-panel.html', requireAuth);
 app.get('/provider-panel.html', requireAuth);
@@ -269,7 +294,7 @@ app.get('/api/me', async (req, res) => {
 });
 
 // ============================================================
-// واجهات المنتجات (مع تصحيح الأخطاء)
+// واجهات المنتجات
 // ============================================================
 app.get('/api/my-products', isAuthenticated, isRole('industrial'), async (req, res) => {
   try {
@@ -302,7 +327,7 @@ app.post('/api/products', isAuthenticated, isRole('industrial'), upload.single('
 });
 
 // ============================================================
-// واجهات الوظائف (مع تصحيح الأخطاء)
+// واجهات الوظائف
 // ============================================================
 app.get('/api/my-jobs', isAuthenticated, isRole('industrial'), async (req, res) => {
   try {
@@ -334,9 +359,6 @@ app.post('/api/jobs', isAuthenticated, isRole('industrial'), upload.single('file
   }
 });
 
-// ============================================================
-// باقي الواجهات (مختصرة)
-// ============================================================
 app.get('/api/industrial/applications', isAuthenticated, isRole('industrial'), async (req, res) => {
   try {
     const jobs = await Job.find({ industrial_id: req.session.userId });
@@ -369,7 +391,73 @@ app.put('/api/application/:id', isAuthenticated, isRole('industrial'), async (re
 });
 
 // ============================================================
-// واجهات الإعلانات الممولة (للمسؤول)
+// واجهات الأدمن والموافقة
+// ============================================================
+app.get('/api/admin/pending-requests', isAuthenticated, isRole('admin'), async (req, res) => {
+  try {
+    const products = await Product.find({ is_approved: false }).populate('industrial_id', 'name company_name');
+    const jobs = await Job.find({ is_approved: false }).populate('industrial_id', 'name company_name');
+    const services = await Service.find({ is_approved: false }).populate('provider_id', 'name');
+    const applications = await Application.find({ is_approved: false }).populate('worker_id', 'name').populate('job_id', 'title');
+    const serviceRequests = await ServiceRequest.find({ is_approved: false }).populate('requester_id', 'name').populate('service_id', 'title');
+    const ads = await ExternalAd.find({ is_approved: false });
+    res.json({ products, jobs, services, applications, serviceRequests, ads });
+  } catch (err) {
+    console.error('خطأ في جلب الطلبات المعلقة:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/admin/approve/:type/:id', isAuthenticated, isRole('admin'), async (req, res) => {
+  try {
+    const { type, id } = req.params;
+    let model;
+    switch(type) {
+      case 'product': model = Product; break;
+      case 'job': model = Job; break;
+      case 'service': model = Service; break;
+      case 'application': model = Application; break;
+      case 'serviceRequest': model = ServiceRequest; break;
+      case 'ad': model = ExternalAd; break;
+      default: return res.status(400).json({ error: 'نوع غير صالح' });
+    }
+    const item = await model.findById(id);
+    if (!item) return res.status(404).json({ error: 'غير موجود' });
+    item.is_approved = true;
+    if (type !== 'application' && type !== 'serviceRequest') {
+      item.is_active = true;
+    }
+    await item.save();
+    res.json({ message: '✅ تمت الموافقة بنجاح' });
+  } catch (err) {
+    console.error('خطأ في الموافقة:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/admin/reject/:type/:id', isAuthenticated, isRole('admin'), async (req, res) => {
+  try {
+    const { type, id } = req.params;
+    let model;
+    switch(type) {
+      case 'product': model = Product; break;
+      case 'job': model = Job; break;
+      case 'service': model = Service; break;
+      case 'application': model = Application; break;
+      case 'serviceRequest': model = ServiceRequest; break;
+      case 'ad': model = ExternalAd; break;
+      default: return res.status(400).json({ error: 'نوع غير صالح' });
+    }
+    await model.findByIdAndDelete(id);
+    res.json({ message: '✅ تم رفض الطلب وحذفه' });
+  } catch (err) {
+    console.error('خطأ في الرفض:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ============================================================
+// واجهات الإعلانات الممولة
 // ============================================================
 app.post('/api/admin/external-ad', isAuthenticated, isRole('admin'), upload.single('file'), async (req, res) => {
   try {
@@ -436,72 +524,6 @@ app.delete('/api/admin/external-ad/:id', isAuthenticated, isRole('admin'), async
     res.json({ message: '✅ تم حذف الإعلان' });
   } catch (err) {
     console.error('خطأ في حذف الإعلان:', err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// ============================================================
-// واجهات الأدمن للموافقة على الطلبات
-// ============================================================
-app.get('/api/admin/pending-requests', isAuthenticated, isRole('admin'), async (req, res) => {
-  try {
-    const products = await Product.find({ is_approved: false }).populate('industrial_id', 'name company_name');
-    const jobs = await Job.find({ is_approved: false }).populate('industrial_id', 'name company_name');
-    const services = await Service.find({ is_approved: false }).populate('provider_id', 'name');
-    const applications = await Application.find({ is_approved: false }).populate('worker_id', 'name').populate('job_id', 'title');
-    const serviceRequests = await ServiceRequest.find({ is_approved: false }).populate('requester_id', 'name').populate('service_id', 'title');
-    const ads = await ExternalAd.find({ is_approved: false });
-    res.json({ products, jobs, services, applications, serviceRequests, ads });
-  } catch (err) {
-    console.error('خطأ في جلب الطلبات المعلقة:', err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.put('/api/admin/approve/:type/:id', isAuthenticated, isRole('admin'), async (req, res) => {
-  try {
-    const { type, id } = req.params;
-    let model;
-    switch(type) {
-      case 'product': model = Product; break;
-      case 'job': model = Job; break;
-      case 'service': model = Service; break;
-      case 'application': model = Application; break;
-      case 'serviceRequest': model = ServiceRequest; break;
-      case 'ad': model = ExternalAd; break;
-      default: return res.status(400).json({ error: 'نوع غير صالح' });
-    }
-    const item = await model.findById(id);
-    if (!item) return res.status(404).json({ error: 'غير موجود' });
-    item.is_approved = true;
-    if (type !== 'application' && type !== 'serviceRequest') {
-      item.is_active = true;
-    }
-    await item.save();
-    res.json({ message: '✅ تمت الموافقة بنجاح' });
-  } catch (err) {
-    console.error('خطأ في الموافقة:', err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.delete('/api/admin/reject/:type/:id', isAuthenticated, isRole('admin'), async (req, res) => {
-  try {
-    const { type, id } = req.params;
-    let model;
-    switch(type) {
-      case 'product': model = Product; break;
-      case 'job': model = Job; break;
-      case 'service': model = Service; break;
-      case 'application': model = Application; break;
-      case 'serviceRequest': model = ServiceRequest; break;
-      case 'ad': model = ExternalAd; break;
-      default: return res.status(400).json({ error: 'نوع غير صالح' });
-    }
-    await model.findByIdAndDelete(id);
-    res.json({ message: '✅ تم رفض الطلب وحذفه' });
-  } catch (err) {
-    console.error('خطأ في الرفض:', err);
     res.status(500).json({ error: err.message });
   }
 });
