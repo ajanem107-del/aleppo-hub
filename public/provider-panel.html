@@ -9,7 +9,7 @@
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <div class="nav-logo"><span class="logo-icon">🏭</span><span class="logo-text">Aleppo <span class="gold">Hub</span></span></div>
+            <div class="nav-logo"><span class="logo-icon">📢</span><span class="logo-text">Aleppo <span class="gold">Hub</span></span></div>
             <div class="nav-links"><a href="/">الرئيسية</a><a href="#" onclick="logout()" style="color:#c0392b;">تسجيل الخروج</a></div>
         </div>
     </nav>
@@ -45,7 +45,6 @@
         document.getElementById('userName').textContent = 'خالد المعلن';
         document.getElementById('userEmail').textContent = 'khaled@provider.com';
 
-        // تحميل البيانات
         async function loadProviderData() {
             try {
                 const res = await fetch('/api/my-services');
@@ -79,7 +78,7 @@
                     content.innerHTML = `
                         <h2>➕ إضافة خدمة جديدة</h2>
                         <div class="card">
-                            <form id="serviceForm">
+                            <form id="serviceForm" enctype="multipart/form-data">
                                 <div class="form-group"><label>عنوان الخدمة</label><input type="text" id="servTitle" required></div>
                                 <div class="form-group"><label>التصنيف</label>
                                     <select id="servCategory" required>
@@ -92,84 +91,36 @@
                                 <div class="form-group"><label>الوصف</label><textarea id="servDesc" rows="2" required></textarea></div>
                                 <div class="form-group"><label>نطاق السعر</label><input type="text" id="servPrice" placeholder="500-1000$ أو حسب الاتفاق"></div>
                                 <div class="form-group"><label>رقم التواصل</label><input type="text" id="servPhone"></div>
-                                <div class="form-group"><label>رابط الصورة</label><input type="text" id="servImage"></div>
+                                <div class="form-group"><label>رفع ملف (صورة أو فيديو)</label><input type="file" id="servFile" accept="image/*,video/*"></div>
                                 <button type="submit">نشر الخدمة</button>
                             </form>
                         </div>
                     `;
                     document.getElementById('serviceForm').addEventListener('submit', async (e) => {
                         e.preventDefault();
-                        const data = {
-                            title: document.getElementById('servTitle').value,
-                            category: document.getElementById('servCategory').value,
-                            description: document.getElementById('servDesc').value,
-                            price_range: document.getElementById('servPrice').value,
-                            contact_phone: document.getElementById('servPhone').value,
-                            image_url: document.getElementById('servImage').value
-                        };
+                        const formData = new FormData();
+                        formData.append('title', document.getElementById('servTitle').value);
+                        formData.append('category', document.getElementById('servCategory').value);
+                        formData.append('description', document.getElementById('servDesc').value);
+                        formData.append('price_range', document.getElementById('servPrice').value);
+                        formData.append('contact_phone', document.getElementById('servPhone').value);
+                        const file = document.getElementById('servFile').files[0];
+                        if (file) formData.append('file', file);
                         try {
-                            const res = await fetch('/api/services', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify(data)
-                            });
+                            const res = await fetch('/api/services', { method: 'POST', body: formData });
                             const result = await res.json();
                             alert(result.message || (result.error ? '❌ ' + result.error : 'تم النشر'));
-                            if (res.ok) {
-                                document.getElementById('serviceForm').reset();
-                                loadProviderData();
-                            }
+                            if (res.ok) { document.getElementById('serviceForm').reset(); loadProviderData(); }
                         } catch(e) { alert('فشل النشر'); }
                     });
                 } else if (section === 'paid-ads') {
                     content.innerHTML = `
-                        <h2>💰 بوابة الإعلانات الممولة</h2>
+                        <h2>💰 الإعلانات الممولة</h2>
                         <div class="card">
-                            <h3>➕ إضافة إعلان ممول جديد</h3>
-                            <form id="paidAdForm" enctype="multipart/form-data">
-                                <div class="form-group"><label>عنوان الإعلان</label><input type="text" id="adTitle" required></div>
-                                <div class="form-group"><label>الوصف</label><textarea id="adDesc" rows="2"></textarea></div>
-                                <div class="form-group"><label>صورة الإعلان</label><input type="file" id="adImage" accept="image/*" required></div>
-                                <div class="form-group"><label>رابط الإعلان (اختياري)</label><input type="text" id="adLink" placeholder="https://..."></div>
-                                <div class="form-group"><label>اسم المعلن</label><input type="text" id="advertiserName" required></div>
-                                <div class="form-group"><label>رقم الهاتف</label><input type="text" id="advertiserPhone"></div>
-                                <div class="form-group"><label>البريد الإلكتروني</label><input type="email" id="advertiserEmail"></div>
-                                <button type="submit">💰 نشر الإعلان الممول</button>
-                            </form>
-                            <hr>
-                            <h3>📋 إعلاناتي الممولة</h3>
+                            <h3>إعلاناتي الممولة</h3>
                             <div id="myPaidAds"><p>📭 لا توجد إعلانات حالياً</p></div>
                         </div>
                     `;
-
-                    // معالج نموذج الإعلانات الممولة
-                    document.getElementById('paidAdForm').addEventListener('submit', async (e) => {
-                        e.preventDefault();
-                        const formData = new FormData();
-                        formData.append('title', document.getElementById('adTitle').value);
-                        formData.append('description', document.getElementById('adDesc').value);
-                        formData.append('link_url', document.getElementById('adLink').value);
-                        formData.append('advertiser_name', document.getElementById('advertiserName').value);
-                        formData.append('advertiser_phone', document.getElementById('advertiserPhone').value);
-                        formData.append('advertiser_email', document.getElementById('advertiserEmail').value);
-                        const imageFile = document.getElementById('adImage').files[0];
-                        if (imageFile) formData.append('image', imageFile);
-                        try {
-                            const res = await fetch('/api/admin/external-ad', {
-                                method: 'POST',
-                                body: formData
-                            });
-                            const result = await res.json();
-                            alert(result.message || (result.error ? '❌ ' + result.error : 'تم النشر'));
-                            if (res.ok) {
-                                document.getElementById('paidAdForm').reset();
-                                loadPaidAds();
-                                loadProviderData();
-                            }
-                        } catch(e) { alert('فشل النشر'); }
-                    });
-
-                    // جلب الإعلانات الممولة
                     async function loadPaidAds() {
                         try {
                             const res = await fetch('/api/admin/external-ads');
@@ -181,44 +132,22 @@
                             }
                             let html = '';
                             data.forEach(ad => {
-                                const imgHtml = ad.image_url ? `<img src="${ad.image_url}" style="max-width:100px;max-height:80px;border-radius:8px;margin:5px 0;">` : '';
+                                const fileHtml = ad.file_url ? 
+                                    (ad.file_type === 'video' ? 
+                                        `<video controls style="max-width:200px;max-height:150px;border-radius:8px;margin:5px 0;"><source src="${ad.file_url}"></video>` :
+                                        `<img src="${ad.file_url}" style="max-width:200px;max-height:150px;border-radius:8px;margin:5px 0;">`) : '';
                                 html += `<div class="item-card">
                                     <strong>${ad.title}</strong> - ${ad.description || ''}<br>
-                                    ${imgHtml}<br>
+                                    ${fileHtml}<br>
                                     المعلن: ${ad.advertiser_name} (${ad.advertiser_phone || ''})<br>
-                                    الحالة: ${ad.is_active ? '✅ نشط' : '⛔ غير نشط'} | دفع: ${ad.is_paid ? '✅ مدفوع' : '❌ غير مدفوع'}<br>
-                                    الرسوم: ${ad.ad_fee}$<br>
-                                    ${!ad.is_paid ? `<button class="btn btn-sm btn-success" onclick="payAd('${ad._id}')">💰 دفع وتفعيل</button>` : ''}
-                                    <button class="btn btn-sm btn-danger" onclick="deleteAd('${ad._id}')">🗑️ حذف</button>
+                                    كود الدفع: <strong style="color:#27ae60;">${ad.payment_code || 'غير متوفر'}</strong><br>
+                                    الحالة: ${ad.is_active ? '✅ نشط' : '⛔ غير نشط'} | دفع: ${ad.payment_status === 'confirmed' ? '✅ مؤكد' : '⏳ قيد الانتظار'}<br>
+                                    ${ad.payment_status === 'confirmed' ? '' : '⏳ في انتظار تأكيد الدفع من الإدارة'}
                                 </div>`;
                             });
                             div.innerHTML = html;
                         } catch(e) { console.error(e); }
                     }
-
-                    window.payAd = async (adId) => {
-                        if (!confirm('تأكيد دفع رسوم الإعلان وتفعيله؟')) return;
-                        try {
-                            const res = await fetch('/api/pay-external-ad', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ ad_id: adId })
-                            });
-                            const result = await res.json();
-                            alert(result.message || (result.error ? '❌ ' + result.error : 'تم'));
-                            if (res.ok) { loadPaidAds(); loadProviderData(); }
-                        } catch(e) { alert('فشل الدفع'); }
-                    };
-
-                    window.deleteAd = async (adId) => {
-                        if (!confirm('حذف هذا الإعلان؟')) return;
-                        try {
-                            await fetch(`/api/admin/external-ad/${adId}`, { method: 'DELETE' });
-                            loadPaidAds();
-                            loadProviderData();
-                        } catch(e) { alert('فشل الحذف'); }
-                    };
-
                     loadPaidAds();
                 }
             });
