@@ -42,7 +42,7 @@ const upload = multer({ storage, fileFilter, limits: { fileSize: 50 * 1024 * 102
 
 // ===== Middleware =====
 app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'))); // ⚠️ يخدم الملفات الثابتة (بما فيها login.html)
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 app.use(session({
   secret: 'aleppo_industrial_secret_key_2026',
@@ -52,10 +52,13 @@ app.use(session({
 }));
 
 // ============================================================
-// ⭐ إعادة توجيه الصفحة الرئيسية إلى تسجيل الدخول ⭐
+// ⭐ التوجيه الجديد: عند فتح الرابط الرئيسي، انتقل إلى login.html
 // ============================================================
 app.get('/', (req, res) => {
+    // إذا كنت تفضل إعادة التوجيه (redirect)
     res.redirect('/login.html');
+    // أو يمكنك استخدام sendFile مباشرة:
+    // res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
 // ============================================================
