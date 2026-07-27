@@ -3,38 +3,45 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة المعلن - Aleppo Hub</title>
+    <title>لوحة الصناعي - Aleppo Hub</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <div class="nav-logo"><span class="logo-icon">🏭</span><span class="logo-text">Aleppo <span class="gold">Hub</span></span></div>
-            <div class="nav-links"><a href="/">الرئيسية</a><a href="#" onclick="logout()" style="color:#c0392b;">تسجيل الخروج</a></div>
+            <div class="nav-logo">
+                <span class="logo-icon">🏭</span>
+                <span class="logo-text">Aleppo <span class="gold">Hub</span></span>
+            </div>
+            <div class="nav-links">
+                <a href="/">الرئيسية</a>
+                <a href="#" onclick="logout()" style="color:#c0392b;">تسجيل الخروج</a>
+            </div>
         </div>
     </nav>
 
     <div class="dashboard-container">
         <aside class="sidebar-modern">
             <div class="user-profile">
-                <div class="avatar">📢</div>
-                <h3 id="userName">معلن</h3>
-                <p id="userEmail">provider@example.com</p>
+                <div class="avatar">🏭</div>
+                <h3 id="userName">صناعي</h3>
+                <p id="userEmail">industrial@example.com</p>
             </div>
             <nav class="sidebar-menu">
-                <a href="#" class="menu-item active" data-section="services">🛠️ خدماتي</a>
-                <a href="#" class="menu-item" data-section="requests">📩 طلبات الخدمات</a>
-                <a href="#" class="menu-item" data-section="add-service">➕ إضافة خدمة</a>
-                <a href="#" class="menu-item" data-section="paid-ads">💰 الإعلانات الممولة</a>
+                <a href="#" class="menu-item active" data-section="products">📦 منتجاتي</a>
+                <a href="#" class="menu-item" data-section="jobs">💼 وظائفي</a>
+                <a href="#" class="menu-item" data-section="applications">📩 طلبات التوظيف</a>
+                <a href="#" class="menu-item" data-section="add-product">➕ إضافة منتج</a>
+                <a href="#" class="menu-item" data-section="add-job">➕ نشر وظيفة</a>
             </nav>
         </aside>
 
         <main class="content-modern">
             <div id="dashboardContent">
                 <div class="stats-grid" id="statsGrid">
-                    <div class="stat-card"><span id="statServices">0</span><small>خدماتي</small></div>
-                    <div class="stat-card"><span id="statRequests">0</span><small>طلبات واردة</small></div>
-                    <div class="stat-card"><span id="statPaidAds">0</span><small>إعلانات ممولة</small></div>
+                    <div class="stat-card"><span id="statProducts">0</span><small>منتجاتي</small></div>
+                    <div class="stat-card"><span id="statJobs">0</span><small>وظائفي</small></div>
+                    <div class="stat-card"><span id="statApplications">0</span><small>طلبات واردة</small></div>
                 </div>
                 <div id="sectionContent"></div>
             </div>
@@ -42,134 +49,319 @@
     </div>
 
     <script>
-        document.getElementById('userName').textContent = 'خالد المعلن';
-        document.getElementById('userEmail').textContent = 'khaled@provider.com';
+        // ==============================
+        // بيانات المستخدم (محاكاة)
+        // ==============================
+        document.getElementById('userName').textContent = 'أحمد الصناعي';
+        document.getElementById('userEmail').textContent = 'ahmed@industrial.com';
 
+        // ==============================
+        // تحميل الإحصائيات
+        // ==============================
+        async function loadIndustrialStats() {
+            try {
+                const res = await fetch('/api/my-products');
+                const products = await res.json();
+                document.getElementById('statProducts').textContent = products.length || 0;
+            } catch(e) { console.error(e); }
+
+            try {
+                const res = await fetch('/api/my-jobs');
+                const jobs = await res.json();
+                document.getElementById('statJobs').textContent = jobs.length || 0;
+            } catch(e) { console.error(e); }
+
+            try {
+                const res = await fetch('/api/industrial/applications');
+                const apps = await res.json();
+                document.getElementById('statApplications').textContent = apps.length || 0;
+            } catch(e) { console.error(e); }
+        }
+
+        // ==============================
+        // عرض المنتجات
+        // ==============================
+        async function loadProducts() {
+            const content = document.getElementById('sectionContent');
+            try {
+                const res = await fetch('/api/my-products');
+                const data = await res.json();
+                if (!data || data.length === 0) {
+                    content.innerHTML = '<h2>📦 منتجاتي</h2><div class="card"><p>📭 لم تقم بإضافة أي منتج بعد.</p></div>';
+                    return;
+                }
+                let html = '<h2>📦 منتجاتي</h2>';
+                data.forEach(p => {
+                    const statusText = p.is_approved ? (p.is_active ? '✅ منشور' : '⏳ قيد المراجعة') : '⏳ قيد المراجعة';
+                    const statusColor = p.is_approved && p.is_active ? '#27ae60' : '#f39c12';
+                    const fileHtml = p.file_url ? 
+                        (p.file_type === 'video' ? 
+                            `<video controls style="max-width:200px;max-height:120px;border-radius:8px;margin:5px 0;"><source src="${p.file_url}"></video>` :
+                            `<img src="${p.file_url}" style="max-width:200px;max-height:120px;border-radius:8px;margin:5px 0;">`) : '';
+                    html += `<div class="card">
+                        <h3>${p.name}</h3>
+                        <p>${p.description || ''}</p>
+                        <p><strong>السعر:</strong> ${p.price || 'سعر متغير'} $</p>
+                        ${fileHtml}
+                        <p><span style="color:${statusColor};">${statusText}</span></p>
+                    </div>`;
+                });
+                content.innerHTML = html;
+            } catch(e) {
+                content.innerHTML = '<h2>📦 منتجاتي</h2><div class="card"><p style="color:red;">❌ خطأ في التحميل</p></div>';
+                console.error(e);
+            }
+        }
+
+        // ==============================
+        // عرض الوظائف
+        // ==============================
+        async function loadJobs() {
+            const content = document.getElementById('sectionContent');
+            try {
+                const res = await fetch('/api/my-jobs');
+                const data = await res.json();
+                if (!data || data.length === 0) {
+                    content.innerHTML = '<h2>💼 وظائفي</h2><div class="card"><p>📭 لم تنشر أي وظيفة بعد.</p></div>';
+                    return;
+                }
+                let html = '<h2>💼 وظائفي</h2>';
+                data.forEach(j => {
+                    const statusText = j.is_approved ? (j.is_active ? '✅ منشورة' : '⏳ قيد المراجعة') : '⏳ قيد المراجعة';
+                    const statusColor = j.is_approved && j.is_active ? '#27ae60' : '#f39c12';
+                    const fileHtml = j.file_url ? 
+                        (j.file_type === 'video' ? 
+                            `<video controls style="max-width:200px;max-height:120px;border-radius:8px;margin:5px 0;"><source src="${j.file_url}"></video>` :
+                            `<img src="${j.file_url}" style="max-width:200px;max-height:120px;border-radius:8px;margin:5px 0;">`) : '';
+                    html += `<div class="card">
+                        <h3>${j.title}</h3>
+                        <p>${j.description}</p>
+                        <p><strong>الراتب:</strong> ${j.salary || 'حسب الاتفاق'}</p>
+                        ${fileHtml}
+                        <p><span style="color:${statusColor};">${statusText}</span></p>
+                    </div>`;
+                });
+                content.innerHTML = html;
+            } catch(e) {
+                content.innerHTML = '<h2>💼 وظائفي</h2><div class="card"><p style="color:red;">❌ خطأ في التحميل</p></div>';
+                console.error(e);
+            }
+        }
+
+        // ==============================
+        // عرض طلبات التوظيف الواردة
+        // ==============================
+        async function loadApplications() {
+            const content = document.getElementById('sectionContent');
+            try {
+                const res = await fetch('/api/industrial/applications');
+                const data = await res.json();
+                if (!data || data.length === 0) {
+                    content.innerHTML = '<h2>📩 طلبات التوظيف</h2><div class="card"><p>📭 لا توجد طلبات على وظائفك حتى الآن.</p></div>';
+                    return;
+                }
+                let html = '<h2>📩 طلبات التوظيف الواردة</h2>';
+                data.forEach(a => {
+                    const statusMap = { pending: '⏳ قيد الانتظار', accepted: '✅ مقبول', rejected: '❌ مرفوض' };
+                    const fileHtml = a.file_url ? 
+                        (a.file_type === 'pdf' ? 
+                            `<a href="${a.file_url}" target="_blank" class="btn btn-sm">📄 عرض السيرة الذاتية (PDF)</a>` :
+                            a.file_type === 'video' ? 
+                            `<video controls style="max-width:200px;max-height:120px;border-radius:8px;margin:5px 0;"><source src="${a.file_url}"></video>` :
+                            `<img src="${a.file_url}" style="max-width:200px;max-height:120px;border-radius:8px;margin:5px 0;">`) : '';
+                    html += `<div class="card">
+                        <h3>${a.job_id?.title || 'وظيفة غير محددة'}</h3>
+                        <p><strong>المتقدم:</strong> ${a.worker_id?.name || 'مستخدم'}</p>
+                        <p><strong>الهاتف:</strong> ${a.worker_id?.phone || 'غير متوفر'}</p>
+                        <p><strong>الرسالة:</strong> ${a.message || 'لا توجد'}</p>
+                        ${fileHtml}
+                        <p><strong>الحالة:</strong> ${statusMap[a.status] || a.status}</p>
+                        ${a.status === 'pending' ? `
+                            <div style="margin-top:10px;display:flex;gap:10px;">
+                                <button class="btn btn-sm btn-success" onclick="updateAppStatus('${a._id}','accepted')">✅ قبول</button>
+                                <button class="btn btn-sm btn-danger" onclick="updateAppStatus('${a._id}','rejected')">❌ رفض</button>
+                            </div>
+                        ` : ''}
+                    </div>`;
+                });
+                content.innerHTML = html;
+            } catch(e) {
+                content.innerHTML = '<h2>📩 طلبات التوظيف</h2><div class="card"><p style="color:red;">❌ خطأ في التحميل</p></div>';
+                console.error(e);
+            }
+        }
+
+        // ==============================
+        // تحديث حالة طلب التوظيف
+        // ==============================
+        async function updateAppStatus(appId, status) {
+            if (!confirm(`تأكيد ${status === 'accepted' ? 'قبول' : 'رفض'} هذا الطلب؟`)) return;
+            try {
+                const res = await fetch(`/api/application/${appId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status })
+                });
+                const result = await res.json();
+                alert(result.message || (result.error ? '❌ ' + result.error : 'تم التحديث'));
+                if (res.ok) loadApplications();
+            } catch(e) {
+                alert('فشل التحديث');
+                console.error(e);
+            }
+        }
+
+        // ==============================
+        // نموذج إضافة منتج
+        // ==============================
+        function showAddProduct() {
+            const content = document.getElementById('sectionContent');
+            content.innerHTML = `
+                <h2>➕ إضافة منتج جديد</h2>
+                <div class="card">
+                    <form id="productForm" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label>اسم المنتج</label>
+                            <input type="text" id="prodName" required>
+                        </div>
+                        <div class="form-group">
+                            <label>الوصف</label>
+                            <textarea id="prodDesc" rows="2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>السعر ($)</label>
+                            <input type="number" id="prodPrice">
+                        </div>
+                        <div class="form-group">
+                            <label>رفع ملف (صورة أو فيديو)</label>
+                            <input type="file" id="prodFile" accept="image/*,video/*">
+                        </div>
+                        <button type="submit">نشر المنتج</button>
+                    </form>
+                </div>
+            `;
+
+            document.getElementById('productForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData();
+                formData.append('name', document.getElementById('prodName').value);
+                formData.append('description', document.getElementById('prodDesc').value);
+                formData.append('price', document.getElementById('prodPrice').value);
+                const file = document.getElementById('prodFile').files[0];
+                if (file) formData.append('file', file);
+
+                try {
+                    const res = await fetch('/api/products', { method: 'POST', body: formData });
+                    const result = await res.json();
+                    alert(result.message || (result.error ? '❌ ' + result.error : 'تم النشر'));
+                    if (res.ok) {
+                        document.getElementById('productForm').reset();
+                        loadIndustrialStats();
+                    }
+                } catch(e) {
+                    alert('فشل النشر');
+                    console.error(e);
+                }
+            });
+        }
+
+        // ==============================
+        // نموذج نشر وظيفة
+        // ==============================
+        function showAddJob() {
+            const content = document.getElementById('sectionContent');
+            content.innerHTML = `
+                <h2>➕ نشر وظيفة جديدة</h2>
+                <div class="card">
+                    <form id="jobForm" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label>عنوان الوظيفة</label>
+                            <input type="text" id="jobTitle" required>
+                        </div>
+                        <div class="form-group">
+                            <label>الوصف</label>
+                            <textarea id="jobDesc" rows="2" required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>المتطلبات</label>
+                            <textarea id="jobReq" rows="2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>الراتب</label>
+                            <input type="text" id="jobSalary" placeholder="مثلاً: 500-700$">
+                        </div>
+                        <div class="form-group">
+                            <label>نوع العامل المطلوب</label>
+                            <input type="text" id="jobWorkerType" placeholder="لحام، كهربائي، سائق...">
+                        </div>
+                        <div class="form-group">
+                            <label>رفع ملف (صورة أو فيديو)</label>
+                            <input type="file" id="jobFile" accept="image/*,video/*">
+                        </div>
+                        <button type="submit">نشر الوظيفة</button>
+                    </form>
+                </div>
+            `;
+
+            document.getElementById('jobForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData();
+                formData.append('title', document.getElementById('jobTitle').value);
+                formData.append('description', document.getElementById('jobDesc').value);
+                formData.append('requirements', document.getElementById('jobReq').value);
+                formData.append('salary', document.getElementById('jobSalary').value);
+                formData.append('worker_type', document.getElementById('jobWorkerType').value);
+                const file = document.getElementById('jobFile').files[0];
+                if (file) formData.append('file', file);
+
+                try {
+                    const res = await fetch('/api/jobs', { method: 'POST', body: formData });
+                    const result = await res.json();
+                    alert(result.message || (result.error ? '❌ ' + result.error : 'تم النشر'));
+                    if (res.ok) {
+                        document.getElementById('jobForm').reset();
+                        loadIndustrialStats();
+                    }
+                } catch(e) {
+                    alert('فشل النشر');
+                    console.error(e);
+                }
+            });
+        }
+
+        // ==============================
+        // التنقل بين الأقسام
+        // ==============================
         document.querySelectorAll('.menu-item').forEach(item => {
             item.addEventListener('click', function(e) {
                 e.preventDefault();
                 document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
                 this.classList.add('active');
+
                 const section = this.dataset.section;
-                const content = document.getElementById('sectionContent');
-                if (section === 'services') {
-                    content.innerHTML = '<h2>🛠️ خدماتي</h2><div class="card"><p>جاري التحميل...</p></div>';
-                } else if (section === 'requests') {
-                    content.innerHTML = '<h2>📩 طلبات الخدمات</h2><div class="card"><p>جاري التحميل...</p></div>';
-                } else if (section === 'add-service') {
-                    content.innerHTML = `
-                        <h2>➕ إضافة خدمة جديدة</h2>
-                        <div class="card">
-                            <form>
-                                <div class="form-group"><label>عنوان الخدمة</label><input type="text"></div>
-                                <div class="form-group"><label>التصنيف</label><select><option>مقاولات</option><option>صيانة</option></select></div>
-                                <div class="form-group"><label>الوصف</label><textarea rows="2"></textarea></div>
-                                <button>نشر الخدمة</button>
-                            </form>
-                        </div>
-                    `;
-                } else if (section === 'paid-ads') {
-                    content.innerHTML = `
-                        <h2>💰 بوابة الإعلانات الممولة</h2>
-                        <div class="card">
-                            <h3>إضافة إعلان ممول جديد</h3>
-                            <form id="paidAdForm">
-                                <div class="form-group"><label>عنوان الإعلان</label><input type="text" id="adTitle" required></div>
-                                <div class="form-group"><label>الوصف</label><textarea id="adDesc" rows="2"></textarea></div>
-                                <div class="form-group"><label>رابط الصورة</label><input type="text" id="adImage" placeholder="https://..."></div>
-                                <div class="form-group"><label>رابط الإعلان (اختياري)</label><input type="text" id="adLink" placeholder="https://..."></div>
-                                <div class="form-group"><label>اسم المعلن</label><input type="text" id="advertiserName" required></div>
-                                <div class="form-group"><label>رقم الهاتف</label><input type="text" id="advertiserPhone"></div>
-                                <div class="form-group"><label>البريد الإلكتروني</label><input type="email" id="advertiserEmail"></div>
-                                <button type="submit">💰 نشر الإعلان الممول</button>
-                            </form>
-                            <hr>
-                            <h3>إعلاناتي الممولة</h3>
-                            <div id="myPaidAds"><p>لا توجد إعلانات حالياً</p></div>
-                        </div>
-                    `;
-
-                    // معالج نموذج الإعلانات الممولة
-                    document.getElementById('paidAdForm').addEventListener('submit', async (e) => {
-                        e.preventDefault();
-                        const data = {
-                            title: document.getElementById('adTitle').value,
-                            description: document.getElementById('adDesc').value,
-                            image_url: document.getElementById('adImage').value,
-                            link_url: document.getElementById('adLink').value,
-                            advertiser_name: document.getElementById('advertiserName').value,
-                            advertiser_phone: document.getElementById('advertiserPhone').value,
-                            advertiser_email: document.getElementById('advertiserEmail').value
-                        };
-                        try {
-                            const res = await fetch('/api/admin/external-ad', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify(data)
-                            });
-                            const result = await res.json();
-                            alert(result.message || (result.error ? '❌ ' + result.error : 'تم النشر'));
-                            if (res.ok) {
-                                document.getElementById('paidAdForm').reset();
-                                loadPaidAds();
-                            }
-                        } catch(e) { alert('فشل النشر'); }
-                    });
-
-                    // جلب الإعلانات الممولة للمعلن الحالي
-                    async function loadPaidAds() {
-                        try {
-                            const res = await fetch('/api/admin/external-ads');
-                            const data = await res.json();
-                            const div = document.getElementById('myPaidAds');
-                            if (!data || data.length === 0) {
-                                div.innerHTML = '<p>📭 لا توجد إعلانات ممولة حالياً</p>';
-                                return;
-                            }
-                            let html = '';
-                            data.forEach(ad => {
-                                html += `<div class="item-card">
-                                    <strong>${ad.title}</strong> - ${ad.description || ''}<br>
-                                    المعلن: ${ad.advertiser_name} (${ad.advertiser_phone || ''})<br>
-                                    الحالة: ${ad.is_active ? '✅ نشط' : '⛔ غير نشط'} | دفع: ${ad.is_paid ? '✅ مدفوع' : '❌ غير مدفوع'}<br>
-                                    الرسوم: ${ad.ad_fee}$<br>
-                                    ${!ad.is_paid ? `<button class="btn btn-sm btn-success" onclick="payAd('${ad._id}')">💰 دفع وتفعيل</button>` : ''}
-                                    <button class="btn btn-sm btn-danger" onclick="deleteAd('${ad._id}')">🗑️ حذف</button>
-                                </div>`;
-                            });
-                            div.innerHTML = html;
-                        } catch(e) { console.error(e); }
-                    }
-
-                    window.payAd = async (adId) => {
-                        if (!confirm('تأكيد دفع رسوم الإعلان وتفعيله؟')) return;
-                        try {
-                            const res = await fetch('/api/pay-external-ad', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ ad_id: adId })
-                            });
-                            const result = await res.json();
-                            alert(result.message || (result.error ? '❌ ' + result.error : 'تم'));
-                            if (res.ok) loadPaidAds();
-                        } catch(e) { alert('فشل الدفع'); }
-                    };
-
-                    window.deleteAd = async (adId) => {
-                        if (!confirm('حذف هذا الإعلان؟')) return;
-                        try {
-                            await fetch(`/api/admin/external-ad/${adId}`, { method: 'DELETE' });
-                            loadPaidAds();
-                        } catch(e) { alert('فشل الحذف'); }
-                    };
-
-                    loadPaidAds();
-                }
+                if (section === 'products') loadProducts();
+                else if (section === 'jobs') loadJobs();
+                else if (section === 'applications') loadApplications();
+                else if (section === 'add-product') showAddProduct();
+                else if (section === 'add-job') showAddJob();
             });
         });
 
-        function logout() { if (confirm('تسجيل الخروج؟')) window.location.href = '/'; }
-        document.querySelector('.menu-item[data-section="services"]').click();
+        // ==============================
+        // تسجيل الخروج
+        // ==============================
+        function logout() {
+            if (confirm('تسجيل الخروج؟')) {
+                fetch('/api/logout', { method: 'POST' }).then(() => window.location.href = '/');
+            }
+        }
+
+        // ==============================
+        // تحميل الصفحة
+        // ==============================
+        loadIndustrialStats();
+        // تفعيل القسم الافتراضي (منتجاتي)
+        document.querySelector('.menu-item[data-section="products"]').click();
     </script>
 </body>
 </html>
