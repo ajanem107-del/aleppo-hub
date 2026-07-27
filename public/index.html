@@ -77,6 +77,41 @@
         .product-card .price { color: #c9a03d; font-weight: bold; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
+
+        /* تنسيق قسم التعريف */
+        .platform-info {
+            margin-top: 40px;
+            padding: 25px;
+            background: #f8fafc;
+            border-radius: 20px;
+            border: 1px solid #eef2f5;
+            text-align: center;
+        }
+        .platform-info h3 {
+            color: #1e2a3a;
+            margin-bottom: 12px;
+        }
+        .platform-info p {
+            color: #4a5a6a;
+            line-height: 1.8;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+        .platform-info .login-warning {
+            color: #d35400;
+            font-weight: 600;
+            margin-top: 12px;
+            background: #fff5f0;
+            padding: 10px 20px;
+            border-radius: 30px;
+            display: inline-block;
+        }
+        .platform-info .login-warning a {
+            color: #c9a03d;
+            font-weight: bold;
+            text-decoration: underline;
+        }
+
         @media (max-width: 600px) {
             .product-grid { grid-template-columns: 1fr; }
             .market-header { flex-direction: column; gap: 10px; }
@@ -106,6 +141,18 @@
         <div id="servicesTab" class="tab-content"><div class="product-grid" id="servicesGrid">جاري التحميل...</div></div>
         <div id="adsTab" class="tab-content"><div class="product-grid" id="adsGrid">جاري التحميل...</div></div>
         <div id="jobsTab" class="tab-content"><div class="product-grid" id="jobsGrid">جاري التحميل...</div></div>
+
+        <!-- ===== تعريف المنصة مع تنبيه تسجيل الدخول ===== -->
+        <div class="platform-info">
+            <h3>📖 منصة Aleppo Hub</h3>
+            <p>
+                منصة متكاملة تهدف إلى ربط الصناعيين، طالبي التوظيف، ومقدمي الخدمات في المدينة الصناعية بحلب.
+                يمكنك تصفح المنتجات، الخدمات، الإعلانات، والوظائف المتاحة.
+            </p>
+            <div class="login-warning">
+                ⚠️ يتوجب عليك <a href="/login.html">تسجيل الدخول</a> لنشر أي منتج، خدمة، إعلان، أو طلب توظيف.
+            </div>
+        </div>
     </div>
 
     <footer style="text-align:center; padding:20px; color:#6a7a8a; border-top:1px solid #eee; margin-top:30px;">
