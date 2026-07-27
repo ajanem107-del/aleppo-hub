@@ -9,16 +9,17 @@
         .request-card { background: #fff; padding: 15px; border-radius: 12px; margin-bottom: 12px; border-right: 4px solid #c9a03d; }
         .request-card .actions { margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap; }
         .badge-pending { background: #f39c12; color: #fff; padding: 2px 10px; border-radius: 20px; font-size: 0.8rem; }
-        .badge-approved { background: #27ae60; color: #fff; padding: 2px 10px; border-radius: 20px; font-size: 0.8rem; }
         .file-preview { max-width: 150px; max-height: 100px; border-radius: 8px; margin: 5px 0; }
         .payment-section { background: #f0f7f0; padding: 15px; border-radius: 12px; margin-top: 10px; }
         .payment-code { font-size: 1.2rem; font-weight: bold; color: #27ae60; }
+        .section-title { margin-top: 20px; padding: 10px; background: #f8fafc; border-radius: 12px; }
+        .empty-message { color: #6a7a8a; text-align: center; padding: 20px; }
     </style>
 </head>
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <div class="nav-logo"><span class="logo-icon">🏭</span><span class="logo-text">Aleppo <span class="gold">Hub</span></span></div>
+            <div class="nav-logo"><span class="logo-icon">👑</span><span class="logo-text">Aleppo <span class="gold">Hub</span></span></div>
             <div class="nav-links"><a href="/">الرئيسية</a><a href="#" onclick="logout()" style="color:#c0392b;">تسجيل الخروج</a></div>
         </div>
     </nav>
@@ -44,8 +45,6 @@
     </div>
 
     <script>
-        let pendingData = {};
-
         async function loadUser() {
             try {
                 const res = await fetch('/api/me');
@@ -58,24 +57,24 @@
 
         async function loadPendingRequests() {
             const content = document.getElementById('sectionContent');
-            content.innerHTML = '<p>جاري التحميل...</p>';
+            content.innerHTML = '<p>⏳ جاري التحميل...</p>';
             try {
                 const res = await fetch('/api/admin/pending-requests');
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.error || 'فشل التحميل');
+                }
                 const data = await res.json();
-                pendingData = data;
+
                 let html = '<h2>📋 الطلبات المعلقة</h2>';
 
-                // المنتجات
+                // 1. المنتجات
                 if (data.products && data.products.length > 0) {
-                    html += `<h3>📦 منتجات (${data.products.length})</h3>`;
+                    html += `<div class="section-title"><h3>📦 منتجات (${data.products.length})</h3></div>`;
                     data.products.forEach(p => {
-                        const fileHtml = p.file_url ? 
-                            (p.file_type === 'video' ? 
-                                `<video controls class="file-preview"><source src="${p.file_url}"></video>` :
-                                `<img src="${p.file_url}" class="file-preview">`) : '';
+                        const fileHtml = p.file_url ? (p.file_type === 'video' ? `<video controls class="file-preview"><source src="${p.file_url}"></video>` : `<img src="${p.file_url}" class="file-preview">`) : '';
                         html += `<div class="request-card">
-                            <strong>${p.name}</strong> - ${p.price || 'سعر متغير'} $<br>
-                            ${fileHtml}<br>
+                            <strong>${p.name}</strong> - ${p.price || 'سعر متغير'} $<br>${fileHtml}<br>
                             الناشر: ${p.industrial_id?.company_name || p.industrial_id?.name || 'غير معروف'}<br>
                             <span class="badge-pending">⏳ قيد المراجعة</span>
                             <div class="actions">
@@ -86,17 +85,13 @@
                     });
                 }
 
-                // الوظائف
+                // 2. الوظائف
                 if (data.jobs && data.jobs.length > 0) {
-                    html += `<h3>💼 وظائف (${data.jobs.length})</h3>`;
+                    html += `<div class="section-title"><h3>💼 وظائف (${data.jobs.length})</h3></div>`;
                     data.jobs.forEach(j => {
-                        const fileHtml = j.file_url ? 
-                            (j.file_type === 'video' ? 
-                                `<video controls class="file-preview"><source src="${j.file_url}"></video>` :
-                                `<img src="${j.file_url}" class="file-preview">`) : '';
+                        const fileHtml = j.file_url ? (j.file_type === 'video' ? `<video controls class="file-preview"><source src="${j.file_url}"></video>` : `<img src="${j.file_url}" class="file-preview">`) : '';
                         html += `<div class="request-card">
-                            <strong>${j.title}</strong> - ${j.salary || 'حسب الاتفاق'}<br>
-                            ${fileHtml}<br>
+                            <strong>${j.title}</strong> - ${j.salary || 'حسب الاتفاق'}<br>${fileHtml}<br>
                             الناشر: ${j.industrial_id?.company_name || j.industrial_id?.name || 'غير معروف'}<br>
                             <span class="badge-pending">⏳ قيد المراجعة</span>
                             <div class="actions">
@@ -107,17 +102,13 @@
                     });
                 }
 
-                // الخدمات
+                // 3. الخدمات
                 if (data.services && data.services.length > 0) {
-                    html += `<h3>🛠️ خدمات (${data.services.length})</h3>`;
+                    html += `<div class="section-title"><h3>🛠️ خدمات (${data.services.length})</h3></div>`;
                     data.services.forEach(s => {
-                        const fileHtml = s.file_url ? 
-                            (s.file_type === 'video' ? 
-                                `<video controls class="file-preview"><source src="${s.file_url}"></video>` :
-                                `<img src="${s.file_url}" class="file-preview">`) : '';
+                        const fileHtml = s.file_url ? (s.file_type === 'video' ? `<video controls class="file-preview"><source src="${s.file_url}"></video>` : `<img src="${s.file_url}" class="file-preview">`) : '';
                         html += `<div class="request-card">
-                            <strong>${s.title}</strong> - ${s.category}<br>
-                            ${fileHtml}<br>
+                            <strong>${s.title}</strong> - ${s.category}<br>${fileHtml}<br>
                             المقدم: ${s.provider_id?.name || 'غير معروف'}<br>
                             <span class="badge-pending">⏳ قيد المراجعة</span>
                             <div class="actions">
@@ -128,19 +119,13 @@
                     });
                 }
 
-                // طلبات التوظيف
+                // 4. طلبات التوظيف
                 if (data.applications && data.applications.length > 0) {
-                    html += `<h3>📩 طلبات توظيف (${data.applications.length})</h3>`;
+                    html += `<div class="section-title"><h3>📩 طلبات توظيف (${data.applications.length})</h3></div>`;
                     data.applications.forEach(a => {
-                        const fileHtml = a.file_url ? 
-                            (a.file_type === 'pdf' ? 
-                                `<a href="${a.file_url}" target="_blank" class="btn btn-sm">📄 عرض السيرة الذاتية (PDF)</a>` :
-                                a.file_type === 'video' ? 
-                                `<video controls class="file-preview"><source src="${a.file_url}"></video>` :
-                                `<img src="${a.file_url}" class="file-preview">`) : '';
+                        const fileHtml = a.file_url ? (a.file_type === 'pdf' ? `<a href="${a.file_url}" target="_blank" class="btn btn-sm">📄 عرض السيرة الذاتية (PDF)</a>` : a.file_type === 'video' ? `<video controls class="file-preview"><source src="${a.file_url}"></video>` : `<img src="${a.file_url}" class="file-preview">`) : '';
                         html += `<div class="request-card">
-                            <strong>${a.job_id?.title || 'وظيفة'}</strong> - مقدم من: ${a.worker_id?.name || 'مستخدم'}<br>
-                            ${fileHtml}<br>
+                            <strong>${a.job_id?.title || 'وظيفة'}</strong> - مقدم من: ${a.worker_id?.name || 'مستخدم'}<br>${fileHtml}<br>
                             الرسالة: ${a.message || 'لا توجد'}<br>
                             <span class="badge-pending">⏳ قيد المراجعة</span>
                             <div class="actions">
@@ -151,17 +136,13 @@
                     });
                 }
 
-                // طلبات الخدمات
+                // 5. طلبات الخدمات
                 if (data.serviceRequests && data.serviceRequests.length > 0) {
-                    html += `<h3>📩 طلبات خدمات (${data.serviceRequests.length})</h3>`;
+                    html += `<div class="section-title"><h3>📩 طلبات خدمات (${data.serviceRequests.length})</h3></div>`;
                     data.serviceRequests.forEach(r => {
-                        const fileHtml = r.file_url ? 
-                            (r.file_type === 'video' ? 
-                                `<video controls class="file-preview"><source src="${r.file_url}"></video>` :
-                                `<img src="${r.file_url}" class="file-preview">`) : '';
+                        const fileHtml = r.file_url ? (r.file_type === 'video' ? `<video controls class="file-preview"><source src="${r.file_url}"></video>` : `<img src="${r.file_url}" class="file-preview">`) : '';
                         html += `<div class="request-card">
-                            <strong>طلب على: ${r.service_id?.title || 'خدمة'}</strong><br>
-                            ${fileHtml}<br>
+                            <strong>طلب على: ${r.service_id?.title || 'خدمة'}</strong><br>${fileHtml}<br>
                             من: ${r.requester_id?.name || 'مستخدم'}<br>
                             الرسالة: ${r.message || 'لا توجد'}<br>
                             <span class="badge-pending">⏳ قيد المراجعة</span>
@@ -173,17 +154,13 @@
                     });
                 }
 
-                // الإعلانات الممولة
+                // 6. الإعلانات الممولة
                 if (data.ads && data.ads.length > 0) {
-                    html += `<h3>💰 إعلانات ممولة (${data.ads.length})</h3>`;
+                    html += `<div class="section-title"><h3>💰 إعلانات ممولة (${data.ads.length})</h3></div>`;
                     data.ads.forEach(a => {
-                        const fileHtml = a.file_url ? 
-                            (a.file_type === 'video' ? 
-                                `<video controls class="file-preview"><source src="${a.file_url}"></video>` :
-                                `<img src="${a.file_url}" class="file-preview">`) : '';
+                        const fileHtml = a.file_url ? (a.file_type === 'video' ? `<video controls class="file-preview"><source src="${a.file_url}"></video>` : `<img src="${a.file_url}" class="file-preview">`) : '';
                         html += `<div class="request-card">
-                            <strong>${a.title}</strong> - ${a.description || ''}<br>
-                            ${fileHtml}<br>
+                            <strong>${a.title}</strong> - ${a.description || ''}<br>${fileHtml}<br>
                             المعلن: ${a.advertiser_name || 'غير معروف'}<br>
                             كود الدفع: <span class="payment-code">${a.payment_code}</span><br>
                             المبلغ: ${a.ad_fee}$<br>
@@ -199,13 +176,13 @@
                 }
 
                 if (!data.products?.length && !data.jobs?.length && !data.services?.length && !data.applications?.length && !data.serviceRequests?.length && !data.ads?.length) {
-                    html += '<div class="card"><p>✅ لا توجد طلبات معلقة حالياً</p></div>';
+                    html += '<div class="card"><p class="empty-message">✅ لا توجد طلبات معلقة حالياً</p></div>';
                 }
 
                 content.innerHTML = html;
             } catch(e) {
-                content.innerHTML = '<p style="color:red;">❌ خطأ في تحميل الطلبات</p>';
-                console.error(e);
+                console.error('خطأ في تحميل الطلبات:', e);
+                content.innerHTML = `<div class="card"><p style="color:red;">❌ حدث خطأ أثناء تحميل الطلبات: ${e.message}</p></div>`;
             }
         }
 

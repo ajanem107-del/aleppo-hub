@@ -130,7 +130,6 @@ body {
 .btn-hero.provider { background: #c9a03d; color: #fff; }
 .btn-hero.provider:hover { background: #dab04d; }
 
-/* ✅ زر الإعلانات الممولة */
 .btn-hero.ads { background: #8e44ad; color: #fff; }
 .btn-hero.ads:hover { background: #9b59b6; transform: translateY(-5px); box-shadow: 0 12px 35px rgba(142, 68, 173, 0.3); }
 

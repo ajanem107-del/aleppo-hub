@@ -42,7 +42,7 @@ const upload = multer({ storage, fileFilter, limits: { fileSize: 50 * 1024 * 102
 
 // ===== Middleware =====
 app.use(bodyParser.json());
-app.use(express.static(path.join(__dirname, 'public'))); // ⚠️ يخدم الملفات الثابتة (بما فيها login.html)
+app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 app.use(session({
   secret: 'aleppo_industrial_secret_key_2026',
@@ -52,24 +52,18 @@ app.use(session({
 }));
 
 // ============================================================
-// ⭐ التوجيه الجديد: عند فتح الرابط الرئيسي، انتقل إلى login.html
+// ⭐ توجيه الصفحة الرئيسية إلى تسجيل الدخول
 // ============================================================
 app.get('/', (req, res) => {
-    // إذا كنت تفضل إعادة التوجيه (redirect)
     res.redirect('/login.html');
-    // أو يمكنك استخدام sendFile مباشرة:
-    // res.sendFile(path.join(__dirname, 'public', 'login.html'));
 });
 
 // ============================================================
 // دوال المصادقة والحماية
 // ============================================================
 function requireAuth(req, res, next) {
-    if (req.session.userId) {
-        return next();
-    }
-    const redirectUrl = req.originalUrl;
-    res.redirect(`/login.html?redirect=${encodeURIComponent(redirectUrl)}`);
+    if (req.session.userId) return next();
+    res.redirect(`/login.html?redirect=${encodeURIComponent(req.originalUrl)}`);
 }
 
 function isAuthenticated(req, res, next) {
@@ -93,7 +87,7 @@ function isRole(role) {
 }
 
 // ============================================================
-// حماية جميع اللوحات (تتطلب تسجيل الدخول)
+// حماية جميع اللوحات
 // ============================================================
 app.get('/industrial-panel.html', requireAuth);
 app.get('/worker-panel.html', requireAuth);
@@ -379,16 +373,33 @@ app.put('/api/application/:id', isAuthenticated, isRole('industrial'), async (re
 });
 
 // ============================================================
-// واجهات الأدمن والموافقة
+// ⭐⭐⭐ واجهات الأدمن (مع تصحيح استعلام الطلبات المعلقة) ⭐⭐⭐
 // ============================================================
 app.get('/api/admin/pending-requests', isAuthenticated, isRole('admin'), async (req, res) => {
   try {
-    const products = await Product.find({ is_approved: false }).populate('industrial_id', 'name company_name');
-    const jobs = await Job.find({ is_approved: false }).populate('industrial_id', 'name company_name');
-    const services = await Service.find({ is_approved: false }).populate('provider_id', 'name');
-    const applications = await Application.find({ is_approved: false }).populate('worker_id', 'name').populate('job_id', 'title');
-    const serviceRequests = await ServiceRequest.find({ is_approved: false }).populate('requester_id', 'name').populate('service_id', 'title');
-    const ads = await ExternalAd.find({ is_approved: false });
+    // البحث عن الطلبات التي لم تتم الموافقة عليها (is_approved = false أو غير موجود)
+    const products = await Product.find({ $or: [{ is_approved: false }, { is_approved: { $exists: false } }] })
+      .populate('industrial_id', 'name company_name');
+    const jobs = await Job.find({ $or: [{ is_approved: false }, { is_approved: { $exists: false } }] })
+      .populate('industrial_id', 'name company_name');
+    const services = await Service.find({ $or: [{ is_approved: false }, { is_approved: { $exists: false } }] })
+      .populate('provider_id', 'name');
+    const applications = await Application.find({ $or: [{ is_approved: false }, { is_approved: { $exists: false } }] })
+      .populate('worker_id', 'name')
+      .populate('job_id', 'title');
+    const serviceRequests = await ServiceRequest.find({ $or: [{ is_approved: false }, { is_approved: { $exists: false } }] })
+      .populate('requester_id', 'name')
+      .populate('service_id', 'title');
+    const ads = await ExternalAd.find({ $or: [{ is_approved: false }, { is_approved: { $exists: false } }] });
+
+    console.log(`📊 عدد الطلبات المعلقة:
+      - منتجات: ${products.length}
+      - وظائف: ${jobs.length}
+      - خدمات: ${services.length}
+      - طلبات توظيف: ${applications.length}
+      - طلبات خدمات: ${serviceRequests.length}
+      - إعلانات: ${ads.length}`);
+
     res.json({ products, jobs, services, applications, serviceRequests, ads });
   } catch (err) {
     console.error('خطأ في جلب الطلبات المعلقة:', err);
@@ -465,7 +476,7 @@ app.post('/api/admin/external-ad', isAuthenticated, isRole('admin'), upload.sing
       approved_by: req.session.userId
     });
     await ad.save();
-    res.status(201).json({ 
+    res.status(201).json({
       message: `✅ تم إضافة الإعلان. كود الدفع: ${payment_code} - المبلغ: ${fee.value}$`,
       ad,
       payment_code

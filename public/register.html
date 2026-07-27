@@ -9,8 +9,17 @@
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <div class="nav-logo"><span class="logo-icon">🏭</span><span class="logo-text">Aleppo <span class="gold">Hub</span></span></div>
-            <div class="nav-links"><a href="/">الرئيسية</a></div>
+            <div class="nav-logo">
+                <span class="logo-icon">🏭</span>
+                <span class="logo-text">Aleppo <span class="gold">Hub</span></span>
+            </div>
+            <div class="nav-links">
+                <a href="/login.html">تسجيل الدخول</a>
+                <a href="/register.html" class="active">إنشاء حساب</a>
+            </div>
+            <div class="nav-auth">
+                <a href="/login.html" class="btn-outline-nav">تسجيل الدخول</a>
+            </div>
         </div>
     </nav>
 
@@ -39,6 +48,7 @@
                     <select id="regRole">
                         <option value="worker">👷 عامل</option>
                         <option value="industrial">🏭 صناعي</option>
+                        <option value="provider">📢 مقدم خدمة</option>
                         <option value="provider">📢 معلن</option>
                     </select>
                 </div>
@@ -78,7 +88,7 @@
                 });
                 const result = await res.json();
                 if (res.ok) {
-                    document.getElementById('registerMessage').innerHTML = `<div class="alert alert-success">✅ ${result.message} يمكنك الآن تسجيل الدخول.</div>`;
+                    document.getElementById('registerMessage').innerHTML = `<div class="alert alert-success">✅ ${result.message}. يمكنك الآن تسجيل الدخول.</div>`;
                     setTimeout(() => window.location.href = '/login.html', 2000);
                 } else {
                     document.getElementById('registerMessage').innerHTML = `<div class="alert alert-error">❌ ${result.error}</div>`;
