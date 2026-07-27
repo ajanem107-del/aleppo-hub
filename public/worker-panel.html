@@ -51,10 +51,34 @@
                 this.classList.add('active');
                 const section = this.dataset.section;
                 const content = document.getElementById('sectionContent');
-                if (section === 'profile') content.innerHTML = '<h2>📝 ملفي الشخصي</h2><div class="card"><form><div class="form-group"><label>المهارات</label><input type="text" placeholder="لحام، كهرباء"></div><div class="form-group"><label>الخبرات</label><textarea rows="2"></textarea></div><button>تحديث الملف</button></form></div>';
-                else if (section === 'jobs') content.innerHTML = '<h2>💼 الوظائف المتاحة</h2><div class="card"><p>جاري التحميل...</p></div>';
-                else if (section === 'applications') content.innerHTML = '<h2>📋 طلباتي المقدمة</h2><div class="card"><p>جاري التحميل...</p></div>';
-                else if (section === 'service-request') content.innerHTML = '<h2>🛠️ طلب خدمة</h2><div class="card"><form><div class="form-group"><label>معرف الخدمة</label><input type="text"></div><div class="form-group"><label>الرسالة</label><textarea rows="2"></textarea></div><button>إرسال الطلب</button></form></div>';
+                if (section === 'profile') {
+                    content.innerHTML = `
+                        <h2>📝 ملفي الشخصي</h2>
+                        <div class="card">
+                            <form>
+                                <div class="form-group"><label>المهارات</label><input type="text" placeholder="لحام، كهرباء"></div>
+                                <div class="form-group"><label>الخبرات</label><textarea rows="2"></textarea></div>
+                                <div class="form-group"><label>رفع السيرة الذاتية (PDF)</label><input type="file" accept=".pdf"></div>
+                                <button>تحديث الملف</button>
+                            </form>
+                        </div>
+                    `;
+                } else if (section === 'jobs') {
+                    content.innerHTML = '<h2>💼 الوظائف المتاحة</h2><div class="card"><p>جاري التحميل...</p></div>';
+                } else if (section === 'applications') {
+                    content.innerHTML = '<h2>📋 طلباتي المقدمة</h2><div class="card"><p>جاري التحميل...</p></div>';
+                } else if (section === 'service-request') {
+                    content.innerHTML = `
+                        <h2>🛠️ طلب خدمة</h2>
+                        <div class="card">
+                            <form>
+                                <div class="form-group"><label>معرف الخدمة</label><input type="text"></div>
+                                <div class="form-group"><label>الرسالة</label><textarea rows="2"></textarea></div>
+                                <button>إرسال الطلب</button>
+                            </form>
+                        </div>
+                    `;
+                }
             });
         });
 

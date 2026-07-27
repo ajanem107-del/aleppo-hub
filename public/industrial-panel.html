@@ -1,44 +1,175 @@
-else if (section === 'applications') content.innerHTML = '<h2>📩 طلبات التوظيف</h2><div class="card"><p>جاري التحميل...</p></div>';
-                else if (section === 'add-product') {
-                    content.innerHTML = 
-                        <h2>➕ إضافة منتج جديد</h2>
-                        <div class="card"><form id="productForm">
-                            <div class="form-group"><label>اسم المنتج</label><input type="text" id="prodName" required></div>
-                            <div class="form-group"><label>الوصف</label><textarea id="prodDesc"></textarea></div>
-                            <div class="form-group"><label>السعر ($)</label><input type="number" id="prodPrice"></div>
-                            <div class="form-group"><label>رابط الصورة</label><input type="text" id="prodImage"></div>
-                            <button type="submit">نشر المنتج</button>
-                        </form></div>
-                    ;
-                    document.getElementById('productForm').addEventListener('submit', async (e) => {
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة المعلن - Aleppo Hub</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo"><span class="logo-icon">🏭</span><span class="logo-text">Aleppo <span class="gold">Hub</span></span></div>
+            <div class="nav-links"><a href="/">الرئيسية</a><a href="#" onclick="logout()" style="color:#c0392b;">تسجيل الخروج</a></div>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <aside class="sidebar-modern">
+            <div class="user-profile">
+                <div class="avatar">📢</div>
+                <h3 id="userName">معلن</h3>
+                <p id="userEmail">provider@example.com</p>
+            </div>
+            <nav class="sidebar-menu">
+                <a href="#" class="menu-item active" data-section="services">🛠️ خدماتي</a>
+                <a href="#" class="menu-item" data-section="requests">📩 طلبات الخدمات</a>
+                <a href="#" class="menu-item" data-section="add-service">➕ إضافة خدمة</a>
+                <a href="#" class="menu-item" data-section="paid-ads">💰 الإعلانات الممولة</a>
+            </nav>
+        </aside>
+
+        <main class="content-modern">
+            <div id="dashboardContent">
+                <div class="stats-grid" id="statsGrid">
+                    <div class="stat-card"><span id="statServices">0</span><small>خدماتي</small></div>
+                    <div class="stat-card"><span id="statRequests">0</span><small>طلبات واردة</small></div>
+                    <div class="stat-card"><span id="statPaidAds">0</span><small>إعلانات ممولة</small></div>
+                </div>
+                <div id="sectionContent"></div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.getElementById('userName').textContent = 'خالد المعلن';
+        document.getElementById('userEmail').textContent = 'khaled@provider.com';
+
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                const section = this.dataset.section;
+                const content = document.getElementById('sectionContent');
+                if (section === 'services') {
+                    content.innerHTML = '<h2>🛠️ خدماتي</h2><div class="card"><p>جاري التحميل...</p></div>';
+                } else if (section === 'requests') {
+                    content.innerHTML = '<h2>📩 طلبات الخدمات</h2><div class="card"><p>جاري التحميل...</p></div>';
+                } else if (section === 'add-service') {
+                    content.innerHTML = `
+                        <h2>➕ إضافة خدمة جديدة</h2>
+                        <div class="card">
+                            <form>
+                                <div class="form-group"><label>عنوان الخدمة</label><input type="text"></div>
+                                <div class="form-group"><label>التصنيف</label><select><option>مقاولات</option><option>صيانة</option></select></div>
+                                <div class="form-group"><label>الوصف</label><textarea rows="2"></textarea></div>
+                                <button>نشر الخدمة</button>
+                            </form>
+                        </div>
+                    `;
+                } else if (section === 'paid-ads') {
+                    content.innerHTML = `
+                        <h2>💰 بوابة الإعلانات الممولة</h2>
+                        <div class="card">
+                            <h3>إضافة إعلان ممول جديد</h3>
+                            <form id="paidAdForm">
+                                <div class="form-group"><label>عنوان الإعلان</label><input type="text" id="adTitle" required></div>
+                                <div class="form-group"><label>الوصف</label><textarea id="adDesc" rows="2"></textarea></div>
+                                <div class="form-group"><label>رابط الصورة</label><input type="text" id="adImage" placeholder="https://..."></div>
+                                <div class="form-group"><label>رابط الإعلان (اختياري)</label><input type="text" id="adLink" placeholder="https://..."></div>
+                                <div class="form-group"><label>اسم المعلن</label><input type="text" id="advertiserName" required></div>
+                                <div class="form-group"><label>رقم الهاتف</label><input type="text" id="advertiserPhone"></div>
+                                <div class="form-group"><label>البريد الإلكتروني</label><input type="email" id="advertiserEmail"></div>
+                                <button type="submit">💰 نشر الإعلان الممول</button>
+                            </form>
+                            <hr>
+                            <h3>إعلاناتي الممولة</h3>
+                            <div id="myPaidAds"><p>لا توجد إعلانات حالياً</p></div>
+                        </div>
+                    `;
+
+                    // معالج نموذج الإعلانات الممولة
+                    document.getElementById('paidAdForm').addEventListener('submit', async (e) => {
                         e.preventDefault();
-                        alert('✅ تم إضافة المنتج (ينتظر موافقة الإدارة)');
+                        const data = {
+                            title: document.getElementById('adTitle').value,
+                            description: document.getElementById('adDesc').value,
+                            image_url: document.getElementById('adImage').value,
+                            link_url: document.getElementById('adLink').value,
+                            advertiser_name: document.getElementById('advertiserName').value,
+                            advertiser_phone: document.getElementById('advertiserPhone').value,
+                            advertiser_email: document.getElementById('advertiserEmail').value
+                        };
+                        try {
+                            const res = await fetch('/api/admin/external-ad', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(data)
+                            });
+                            const result = await res.json();
+                            alert(result.message || (result.error ? '❌ ' + result.error : 'تم النشر'));
+                            if (res.ok) {
+                                document.getElementById('paidAdForm').reset();
+                                loadPaidAds();
+                            }
+                        } catch(e) { alert('فشل النشر'); }
                     });
-                } else if (section === 'add-job') {
-                    content.innerHTML = 
-                        <h2>➕ نشر وظيفة جديدة</h2>
-                        <div class="card"><form id="jobForm">
-                            <div class="form-group"><label>عنوان الوظيفة</label><input type="text" id="jobTitle" required></div>
-                            <div class="form-group"><label>الوصف</label><textarea id="jobDesc"></textarea></div>
-                            <div class="form-group"><label>الراتب</label><input type="text" id="jobSalary"></div>
-                            <button type="submit">نشر الوظيفة</button>
-                        </form></div>
-                    ;
-                    document.getElementById('jobForm').addEventListener('submit', async (e) => {
-                        e.preventDefault();
-                        alert('✅ تم نشر الوظيفة بنجاح');
-                    });
+
+                    // جلب الإعلانات الممولة للمعلن الحالي
+                    async function loadPaidAds() {
+                        try {
+                            const res = await fetch('/api/admin/external-ads');
+                            const data = await res.json();
+                            const div = document.getElementById('myPaidAds');
+                            if (!data || data.length === 0) {
+                                div.innerHTML = '<p>📭 لا توجد إعلانات ممولة حالياً</p>';
+                                return;
+                            }
+                            let html = '';
+                            data.forEach(ad => {
+                                html += `<div class="item-card">
+                                    <strong>${ad.title}</strong> - ${ad.description || ''}<br>
+                                    المعلن: ${ad.advertiser_name} (${ad.advertiser_phone || ''})<br>
+                                    الحالة: ${ad.is_active ? '✅ نشط' : '⛔ غير نشط'} | دفع: ${ad.is_paid ? '✅ مدفوع' : '❌ غير مدفوع'}<br>
+                                    الرسوم: ${ad.ad_fee}$<br>
+                                    ${!ad.is_paid ? `<button class="btn btn-sm btn-success" onclick="payAd('${ad._id}')">💰 دفع وتفعيل</button>` : ''}
+                                    <button class="btn btn-sm btn-danger" onclick="deleteAd('${ad._id}')">🗑️ حذف</button>
+                                </div>`;
+                            });
+                            div.innerHTML = html;
+                        } catch(e) { console.error(e); }
+                    }
+
+                    window.payAd = async (adId) => {
+                        if (!confirm('تأكيد دفع رسوم الإعلان وتفعيله؟')) return;
+                        try {
+                            const res = await fetch('/api/pay-external-ad', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ ad_id: adId })
+                            });
+                            const result = await res.json();
+                            alert(result.message || (result.error ? '❌ ' + result.error : 'تم'));
+                            if (res.ok) loadPaidAds();
+                        } catch(e) { alert('فشل الدفع'); }
+                    };
+
+                    window.deleteAd = async (adId) => {
+                        if (!confirm('حذف هذا الإعلان؟')) return;
+                        try {
+                            await fetch(`/api/admin/external-ad/${adId}`, { method: 'DELETE' });
+                            loadPaidAds();
+                        } catch(e) { alert('فشل الحذف'); }
+                    };
+
+                    loadPaidAds();
                 }
             });
         });
 
-        function logout() {
-            if (confirm('تسجيل الخروج؟')) window.location.href = '/';
-        }
-
-        loadIndustrialData();
-        // تفعيل القسم الأول
-        document.querySelector('.menu-item[data-section="products"]').click();
+        function logout() { if (confirm('تسجيل الخروج؟')) window.location.href = '/'; }
+        document.querySelector('.menu-item[data-section="services"]').click();
     </script>
 </body>
 </html>

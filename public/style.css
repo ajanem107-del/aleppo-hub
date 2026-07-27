@@ -125,6 +125,7 @@ body {
 .btn-hero.provider { background: #c9a03d; color: #fff; }
 .btn-hero.provider:hover { background: #dab04d; }
 
+/* ===== المميزات ===== */
 .features {
     max-width: 1200px;
     margin: 60px auto;
@@ -153,6 +154,36 @@ body {
 .feature-icon { font-size: 3.5rem; margin-bottom: 15px; }
 .feature-card h3 { color: #1e2a3a; margin-bottom: 10px; }
 .feature-card p { color: #5a6a7a; line-height: 1.7; }
+
+/* ===== قسم عن المنصة ===== */
+.about-section {
+    max-width: 900px;
+    margin: 60px auto;
+    padding: 0 20px;
+}
+.about-container {
+    background: #fff;
+    padding: 40px 35px;
+    border-radius: 25px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.04);
+    text-align: center;
+}
+.about-container h2 {
+    font-size: 2rem;
+    color: #1e2a3a;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #c9a03d;
+    display: inline-block;
+    padding-bottom: 8px;
+}
+.about-container p {
+    font-size: 1.1rem;
+    color: #4a5a6a;
+    line-height: 1.9;
+    margin-bottom: 15px;
+}
+.about-container p:last-child { margin-bottom: 0; }
+.about-container strong { color: #1e2a3a; }
 
 /* ===== لوحات التحكم ===== */
 .dashboard-container {
@@ -233,6 +264,7 @@ body {
     border-radius: 16px;
     margin-bottom: 20px;
 }
+.card h3 { color: #1e2a3a; margin-bottom: 15px; font-size: 1.2rem; }
 
 /* ===== الحقول ===== */
 .form-group { margin-bottom: 18px; }
@@ -251,6 +283,12 @@ input:focus, select:focus, textarea:focus {
     box-shadow: 0 0 0 3px rgba(201, 160, 61, 0.1);
     outline: none;
 }
+input[type="file"] {
+    padding: 10px;
+    border: 1px dashed #c9a03d;
+    background: #fafafc;
+}
+
 button, .btn {
     padding: 12px 30px;
     background: #c9a03d;
@@ -263,6 +301,28 @@ button, .btn {
     transition: 0.3s;
 }
 button:hover { background: #b8922a; transform: translateY(-2px); box-shadow: 0 6px 20px rgba(201, 160, 61, 0.3); }
+
+.btn-sm { padding: 6px 18px; font-size: 0.8rem; border-radius: 30px; }
+.btn-danger { background: #c0392b; }
+.btn-danger:hover { background: #e74c3c; }
+.btn-success { background: #27ae60; }
+.btn-success:hover { background: #2ecc71; }
+
+hr {
+    border: none;
+    border-top: 1px solid #e0e6ea;
+    margin: 25px 0;
+}
+
+/* ===== عناصر الإعلانات ===== */
+.item-card {
+    background: #f8fafc;
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 12px;
+    border: 1px solid #eef2f5;
+}
+.item-card strong { color: #1e2a3a; }
 
 /* ===== تذييل ===== */
 footer {
@@ -284,4 +344,6 @@ footer {
     .nav-links { display: none; }
     .hero-actions { flex-direction: column; align-items: center; }
     .btn-hero { width: 80%; }
+    .about-container { padding: 20px; }
+    .about-container h2 { font-size: 1.5rem; }
 }
