@@ -43,48 +43,67 @@
                     <div class="stat-card"><span id="statJobs">0</span><small>وظائفي</small></div>
                     <div class="stat-card"><span id="statApplications">0</span><small>طلبات واردة</small></div>
                 </div>
-                <div id="sectionContent"></div>
+                <div id="sectionContent">
+                    <div class="card"><p>جاري التحميل...</p></div>
+                </div>
             </div>
         </main>
     </div>
 
     <script>
-        // ==============================
-        // بيانات المستخدم (محاكاة)
-        // ==============================
-        document.getElementById('userName').textContent = 'أحمد الصناعي';
-        document.getElementById('userEmail').textContent = 'ahmed@industrial.com';
+        // بيانات المستخدم (سيتم جلبها من API)
+        async function loadUserInfo() {
+            try {
+                const res = await fetch('/api/me');
+                if (res.ok) {
+                    const user = await res.json();
+                    document.getElementById('userName').textContent = user.name || 'صناعي';
+                    document.getElementById('userEmail').textContent = user.email || 'industrial@example.com';
+                }
+            } catch(e) { console.error('خطأ في جلب معلومات المستخدم', e); }
+        }
 
         // ==============================
         // تحميل الإحصائيات
         // ==============================
         async function loadIndustrialStats() {
             try {
-                const res = await fetch('/api/my-products');
-                const products = await res.json();
-                document.getElementById('statProducts').textContent = products.length || 0;
-            } catch(e) { console.error(e); }
+                const resProducts = await fetch('/api/my-products');
+                if (resProducts.ok) {
+                    const products = await resProducts.json();
+                    document.getElementById('statProducts').textContent = products.length || 0;
+                }
+            } catch(e) { console.error('خطأ في إحصائيات المنتجات', e); }
 
             try {
-                const res = await fetch('/api/my-jobs');
-                const jobs = await res.json();
-                document.getElementById('statJobs').textContent = jobs.length || 0;
-            } catch(e) { console.error(e); }
+                const resJobs = await fetch('/api/my-jobs');
+                if (resJobs.ok) {
+                    const jobs = await resJobs.json();
+                    document.getElementById('statJobs').textContent = jobs.length || 0;
+                }
+            } catch(e) { console.error('خطأ في إحصائيات الوظائف', e); }
 
             try {
-                const res = await fetch('/api/industrial/applications');
-                const apps = await res.json();
-                document.getElementById('statApplications').textContent = apps.length || 0;
-            } catch(e) { console.error(e); }
+                const resApps = await fetch('/api/industrial/applications');
+                if (resApps.ok) {
+                    const apps = await resApps.json();
+                    document.getElementById('statApplications').textContent = apps.length || 0;
+                }
+            } catch(e) { console.error('خطأ في إحصائيات الطلبات', e); }
         }
 
         // ==============================
-        // عرض المنتجات
+        // عرض المنتجات مع معالجة الأخطاء
         // ==============================
         async function loadProducts() {
             const content = document.getElementById('sectionContent');
+            content.innerHTML = '<div class="card"><p>⏳ جاري تحميل المنتجات...</p></div>';
             try {
                 const res = await fetch('/api/my-products');
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.error || 'فشل التحميل');
+                }
                 const data = await res.json();
                 if (!data || data.length === 0) {
                     content.innerHTML = '<h2>📦 منتجاتي</h2><div class="card"><p>📭 لم تقم بإضافة أي منتج بعد.</p></div>';
@@ -108,18 +127,23 @@
                 });
                 content.innerHTML = html;
             } catch(e) {
-                content.innerHTML = '<h2>📦 منتجاتي</h2><div class="card"><p style="color:red;">❌ خطأ في التحميل</p></div>';
-                console.error(e);
+                console.error('خطأ في تحميل المنتجات:', e);
+                content.innerHTML = `<h2>📦 منتجاتي</h2><div class="card"><p style="color:red;">❌ حدث خطأ أثناء تحميل المنتجات: ${e.message}</p></div>`;
             }
         }
 
         // ==============================
-        // عرض الوظائف
+        // عرض الوظائف مع معالجة الأخطاء
         // ==============================
         async function loadJobs() {
             const content = document.getElementById('sectionContent');
+            content.innerHTML = '<div class="card"><p>⏳ جاري تحميل الوظائف...</p></div>';
             try {
                 const res = await fetch('/api/my-jobs');
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.error || 'فشل التحميل');
+                }
                 const data = await res.json();
                 if (!data || data.length === 0) {
                     content.innerHTML = '<h2>💼 وظائفي</h2><div class="card"><p>📭 لم تنشر أي وظيفة بعد.</p></div>';
@@ -143,18 +167,23 @@
                 });
                 content.innerHTML = html;
             } catch(e) {
-                content.innerHTML = '<h2>💼 وظائفي</h2><div class="card"><p style="color:red;">❌ خطأ في التحميل</p></div>';
-                console.error(e);
+                console.error('خطأ في تحميل الوظائف:', e);
+                content.innerHTML = `<h2>💼 وظائفي</h2><div class="card"><p style="color:red;">❌ حدث خطأ أثناء تحميل الوظائف: ${e.message}</p></div>`;
             }
         }
 
         // ==============================
-        // عرض طلبات التوظيف الواردة
+        // عرض طلبات التوظيف
         // ==============================
         async function loadApplications() {
             const content = document.getElementById('sectionContent');
+            content.innerHTML = '<div class="card"><p>⏳ جاري تحميل الطلبات...</p></div>';
             try {
                 const res = await fetch('/api/industrial/applications');
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.error || 'فشل التحميل');
+                }
                 const data = await res.json();
                 if (!data || data.length === 0) {
                     content.innerHTML = '<h2>📩 طلبات التوظيف</h2><div class="card"><p>📭 لا توجد طلبات على وظائفك حتى الآن.</p></div>';
@@ -186,14 +215,11 @@
                 });
                 content.innerHTML = html;
             } catch(e) {
-                content.innerHTML = '<h2>📩 طلبات التوظيف</h2><div class="card"><p style="color:red;">❌ خطأ في التحميل</p></div>';
-                console.error(e);
+                console.error('خطأ في تحميل طلبات التوظيف:', e);
+                content.innerHTML = `<h2>📩 طلبات التوظيف</h2><div class="card"><p style="color:red;">❌ حدث خطأ أثناء تحميل الطلبات: ${e.message}</p></div>`;
             }
         }
 
-        // ==============================
-        // تحديث حالة طلب التوظيف
-        // ==============================
         async function updateAppStatus(appId, status) {
             if (!confirm(`تأكيد ${status === 'accepted' ? 'قبول' : 'رفض'} هذا الطلب؟`)) return;
             try {
@@ -212,7 +238,7 @@
         }
 
         // ==============================
-        // نموذج إضافة منتج
+        // نماذج الإضافة
         // ==============================
         function showAddProduct() {
             const content = document.getElementById('sectionContent');
@@ -220,27 +246,14 @@
                 <h2>➕ إضافة منتج جديد</h2>
                 <div class="card">
                     <form id="productForm" enctype="multipart/form-data">
-                        <div class="form-group">
-                            <label>اسم المنتج</label>
-                            <input type="text" id="prodName" required>
-                        </div>
-                        <div class="form-group">
-                            <label>الوصف</label>
-                            <textarea id="prodDesc" rows="2"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label>السعر ($)</label>
-                            <input type="number" id="prodPrice">
-                        </div>
-                        <div class="form-group">
-                            <label>رفع ملف (صورة أو فيديو)</label>
-                            <input type="file" id="prodFile" accept="image/*,video/*">
-                        </div>
+                        <div class="form-group"><label>اسم المنتج</label><input type="text" id="prodName" required></div>
+                        <div class="form-group"><label>الوصف</label><textarea id="prodDesc" rows="2"></textarea></div>
+                        <div class="form-group"><label>السعر ($)</label><input type="number" id="prodPrice"></div>
+                        <div class="form-group"><label>رفع ملف (صورة أو فيديو)</label><input type="file" id="prodFile" accept="image/*,video/*"></div>
                         <button type="submit">نشر المنتج</button>
                     </form>
                 </div>
             `;
-
             document.getElementById('productForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const formData = new FormData();
@@ -249,7 +262,6 @@
                 formData.append('price', document.getElementById('prodPrice').value);
                 const file = document.getElementById('prodFile').files[0];
                 if (file) formData.append('file', file);
-
                 try {
                     const res = await fetch('/api/products', { method: 'POST', body: formData });
                     const result = await res.json();
@@ -265,44 +277,22 @@
             });
         }
 
-        // ==============================
-        // نموذج نشر وظيفة
-        // ==============================
         function showAddJob() {
             const content = document.getElementById('sectionContent');
             content.innerHTML = `
                 <h2>➕ نشر وظيفة جديدة</h2>
                 <div class="card">
                     <form id="jobForm" enctype="multipart/form-data">
-                        <div class="form-group">
-                            <label>عنوان الوظيفة</label>
-                            <input type="text" id="jobTitle" required>
-                        </div>
-                        <div class="form-group">
-                            <label>الوصف</label>
-                            <textarea id="jobDesc" rows="2" required></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label>المتطلبات</label>
-                            <textarea id="jobReq" rows="2"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label>الراتب</label>
-                            <input type="text" id="jobSalary" placeholder="مثلاً: 500-700$">
-                        </div>
-                        <div class="form-group">
-                            <label>نوع العامل المطلوب</label>
-                            <input type="text" id="jobWorkerType" placeholder="لحام، كهربائي، سائق...">
-                        </div>
-                        <div class="form-group">
-                            <label>رفع ملف (صورة أو فيديو)</label>
-                            <input type="file" id="jobFile" accept="image/*,video/*">
-                        </div>
+                        <div class="form-group"><label>عنوان الوظيفة</label><input type="text" id="jobTitle" required></div>
+                        <div class="form-group"><label>الوصف</label><textarea id="jobDesc" rows="2" required></textarea></div>
+                        <div class="form-group"><label>المتطلبات</label><textarea id="jobReq" rows="2"></textarea></div>
+                        <div class="form-group"><label>الراتب</label><input type="text" id="jobSalary" placeholder="مثلاً: 500-700$"></div>
+                        <div class="form-group"><label>نوع العامل المطلوب</label><input type="text" id="jobWorkerType" placeholder="لحام، كهربائي، سائق..."></div>
+                        <div class="form-group"><label>رفع ملف (صورة أو فيديو)</label><input type="file" id="jobFile" accept="image/*,video/*"></div>
                         <button type="submit">نشر الوظيفة</button>
                     </form>
                 </div>
             `;
-
             document.getElementById('jobForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const formData = new FormData();
@@ -313,7 +303,6 @@
                 formData.append('worker_type', document.getElementById('jobWorkerType').value);
                 const file = document.getElementById('jobFile').files[0];
                 if (file) formData.append('file', file);
-
                 try {
                     const res = await fetch('/api/jobs', { method: 'POST', body: formData });
                     const result = await res.json();
@@ -337,7 +326,6 @@
                 e.preventDefault();
                 document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
                 this.classList.add('active');
-
                 const section = this.dataset.section;
                 if (section === 'products') loadProducts();
                 else if (section === 'jobs') loadJobs();
@@ -347,9 +335,6 @@
             });
         });
 
-        // ==============================
-        // تسجيل الخروج
-        // ==============================
         function logout() {
             if (confirm('تسجيل الخروج؟')) {
                 fetch('/api/logout', { method: 'POST' }).then(() => window.location.href = '/');
@@ -359,6 +344,7 @@
         // ==============================
         // تحميل الصفحة
         // ==============================
+        loadUserInfo();
         loadIndustrialStats();
         // تفعيل القسم الافتراضي (منتجاتي)
         document.querySelector('.menu-item[data-section="products"]').click();

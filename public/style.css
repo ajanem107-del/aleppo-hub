@@ -100,6 +100,8 @@ body {
     color: #5a6a7a;
     margin-bottom: 40px;
 }
+
+/* ===== الأزرار الرئيسية ===== */
 .hero-actions {
     display: flex;
     gap: 20px;
@@ -118,12 +120,19 @@ body {
     cursor: pointer;
 }
 .btn-hero:hover { transform: translateY(-5px); box-shadow: 0 12px 35px rgba(0, 0, 0, 0.1); }
+
 .btn-hero.industrial { background: #2a5a3a; color: #fff; }
 .btn-hero.industrial:hover { background: #3a7a4a; }
+
 .btn-hero.worker { background: #2a6b8a; color: #fff; }
 .btn-hero.worker:hover { background: #3a8baa; }
+
 .btn-hero.provider { background: #c9a03d; color: #fff; }
 .btn-hero.provider:hover { background: #dab04d; }
+
+/* ✅ زر الإعلانات الممولة */
+.btn-hero.ads { background: #8e44ad; color: #fff; }
+.btn-hero.ads:hover { background: #9b59b6; transform: translateY(-5px); box-shadow: 0 12px 35px rgba(142, 68, 173, 0.3); }
 
 /* ===== المميزات ===== */
 .features {
@@ -139,7 +148,7 @@ body {
 }
 .features-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 30px;
 }
 .feature-card {
@@ -379,11 +388,11 @@ footer {
     border-top: 1px solid rgba(0, 0, 0, 0.04);
 }
 
-/* ===== استجابة ===== */
+/* ===== استجابة للشاشات الصغيرة ===== */
 @media (max-width: 900px) {
     .dashboard-container { flex-direction: column; }
     .sidebar-modern { width: 100%; position: relative; top: 0; }
-    .features-grid { grid-template-columns: 1fr; }
+    .features-grid { grid-template-columns: 1fr 1fr; }
     .hero-content h1 { font-size: 2.5rem; }
 }
 @media (max-width: 600px) {
@@ -391,6 +400,7 @@ footer {
     .nav-links { display: none; }
     .hero-actions { flex-direction: column; align-items: center; }
     .btn-hero { width: 80%; }
+    .features-grid { grid-template-columns: 1fr; }
     .about-container { padding: 20px; }
     .about-container h2 { font-size: 1.5rem; }
 }
