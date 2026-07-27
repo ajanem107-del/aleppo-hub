@@ -52,10 +52,14 @@ app.use(session({
 }));
 
 // ============================================================
-// ⭐ توجيه الصفحة الرئيسية إلى تسجيل الدخول
+// ⭐ توجيه الصفحة الرئيسية: السوق للمسجلين، تسجيل الدخول للزوار
 // ============================================================
 app.get('/', (req, res) => {
-    res.redirect('/login.html');
+    if (req.session.userId) {
+        res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    } else {
+        res.redirect('/login.html');
+    }
 });
 
 // ============================================================
@@ -373,11 +377,10 @@ app.put('/api/application/:id', isAuthenticated, isRole('industrial'), async (re
 });
 
 // ============================================================
-// ⭐⭐⭐ واجهات الأدمن (مع تصحيح استعلام الطلبات المعلقة) ⭐⭐⭐
+// واجهات الأدمن مع تصحيح استعلام الطلبات المعلقة
 // ============================================================
 app.get('/api/admin/pending-requests', isAuthenticated, isRole('admin'), async (req, res) => {
   try {
-    // البحث عن الطلبات التي لم تتم الموافقة عليها (is_approved = false أو غير موجود)
     const products = await Product.find({ $or: [{ is_approved: false }, { is_approved: { $exists: false } }] })
       .populate('industrial_id', 'name company_name');
     const jobs = await Job.find({ $or: [{ is_approved: false }, { is_approved: { $exists: false } }] })

@@ -3,14 +3,67 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة المعلن - Aleppo Hub</title>
+    <title>لوحة مقدم الخدمة - Aleppo Hub</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* أنماط التبويبات العلوية */
+        .main-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid #eef2f5;
+            padding-bottom: 10px;
+        }
+        .main-tabs .tab-btn {
+            padding: 8px 20px;
+            border: none;
+            background: transparent;
+            color: #4a5a6a;
+            font-weight: 600;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 0.95rem;
+        }
+        .main-tabs .tab-btn:hover { background: rgba(0,0,0,0.03); }
+        .main-tabs .tab-btn.active {
+            background: #c9a03d;
+            color: #fff;
+        }
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 20px;
+        }
+        .product-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .product-card img {
+            max-width: 100%;
+            max-height: 150px;
+            border-radius: 12px;
+            object-fit: cover;
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .stats-grid { margin-bottom: 20px; }
+    </style>
 </head>
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <div class="nav-logo"><span class="logo-icon">📢</span><span class="logo-text">Aleppo <span class="gold">Hub</span></span></div>
-            <div class="nav-links"><a href="/">الرئيسية</a><a href="#" onclick="logout()" style="color:#c0392b;">تسجيل الخروج</a></div>
+            <div class="nav-logo">
+                <span class="logo-icon">📢</span>
+                <span class="logo-text">Aleppo <span class="gold">Hub</span></span>
+            </div>
+            <div class="nav-links">
+                <a href="/" class="active">السوق</a>
+                <a href="#" onclick="logout()" style="color:#c0392b;">تسجيل الخروج</a>
+            </div>
         </div>
     </nav>
 
@@ -18,23 +71,38 @@
         <aside class="sidebar-modern">
             <div class="user-profile">
                 <div class="avatar">📢</div>
-                <h3 id="userName">معلن</h3>
+                <h3 id="userName">مقدم خدمة</h3>
                 <p id="userEmail">provider@example.com</p>
             </div>
             <nav class="sidebar-menu">
                 <a href="#" class="menu-item active" data-section="services">🛠️ خدماتي</a>
                 <a href="#" class="menu-item" data-section="requests">📩 طلبات الخدمات</a>
                 <a href="#" class="menu-item" data-section="add-service">➕ إضافة خدمة</a>
-                <a href="#" class="menu-item" data-section="paid-ads">💰 الإعلانات الممولة</a>
             </nav>
         </aside>
 
         <main class="content-modern">
-            <div id="dashboardContent">
+            <!-- ===== شريط التبويبات الرئيسية ===== -->
+            <div class="main-tabs">
+                <button class="tab-btn active" data-tab="products">📦 المنتجات</button>
+                <button class="tab-btn" data-tab="services">🛠️ الخدمات</button>
+                <button class="tab-btn" data-tab="ads">💰 الإعلانات</button>
+                <button class="tab-btn" data-tab="jobs">💼 الوظائف</button>
+            </div>
+
+            <!-- ===== محتوى التبويبات ===== -->
+            <div id="marketContent">
+                <div id="productsTab" class="tab-content active"><div class="product-grid" id="productsGrid">جاري التحميل...</div></div>
+                <div id="servicesTab" class="tab-content"><div class="product-grid" id="servicesGrid">جاري التحميل...</div></div>
+                <div id="adsTab" class="tab-content"><div class="product-grid" id="adsGrid">جاري التحميل...</div></div>
+                <div id="jobsTab" class="tab-content"><div class="product-grid" id="jobsGrid">جاري التحميل...</div></div>
+            </div>
+
+            <!-- ===== أقسام الإدارة (تظهر عند اختيار القائمة الجانبية) ===== -->
+            <div id="dashboardContent" style="display:none;">
                 <div class="stats-grid" id="statsGrid">
                     <div class="stat-card"><span id="statServices">0</span><small>خدماتي</small></div>
                     <div class="stat-card"><span id="statRequests">0</span><small>طلبات واردة</small></div>
-                    <div class="stat-card"><span id="statPaidAds">0</span><small>إعلانات ممولة</small></div>
                 </div>
                 <div id="sectionContent"></div>
             </div>
@@ -42,10 +110,78 @@
     </div>
 
     <script>
-        document.getElementById('userName').textContent = 'خالد المعلن';
-        document.getElementById('userEmail').textContent = 'khaled@provider.com';
+        // ==============================
+        // بيانات المستخدم
+        // ==============================
+        async function loadUserInfo() {
+            try {
+                const res = await fetch('/api/me');
+                if (res.ok) {
+                    const user = await res.json();
+                    document.getElementById('userName').textContent = user.name || 'مقدم خدمة';
+                    document.getElementById('userEmail').textContent = user.email || 'provider@example.com';
+                }
+            } catch(e) { console.error('خطأ في جلب معلومات المستخدم', e); }
+        }
 
-        async function loadProviderData() {
+        // ==============================
+        // دوال السوق (التبويبات)
+        // ==============================
+        document.querySelectorAll('.main-tabs .tab-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.main-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                const tab = this.dataset.tab;
+                document.querySelectorAll('#marketContent .tab-content').forEach(t => t.classList.remove('active'));
+                document.getElementById(tab + 'Tab').classList.add('active');
+                loadMarketData(tab);
+            });
+        });
+
+        async function loadMarketData(type) {
+            const map = {
+                products: 'products',
+                services: 'services',
+                ads: 'external-ads',
+                jobs: 'jobs'
+            };
+            const gridId = type + 'Grid';
+            const grid = document.getElementById(gridId);
+            grid.innerHTML = 'جاري التحميل...';
+            try {
+                const res = await fetch(`/api/${map[type]}`);
+                const data = await res.json();
+                if (!data || data.length === 0) {
+                    grid.innerHTML = '<p style="text-align:center;color:#b8a06a;">📭 لا توجد عناصر معتمدة حالياً</p>';
+                    return;
+                }
+                let html = '';
+                data.forEach(item => {
+                    let imageHtml = '';
+                    if (item.file_url && item.file_url.startsWith('/uploads')) {
+                        imageHtml = `<img src="${item.file_url}" alt="${item.name || item.title}" onerror="this.style.display='none'">`;
+                    }
+                    const name = item.name || item.title;
+                    const desc = item.description || '';
+                    const price = item.price ? `${item.price} $` : (item.salary || item.price_range || 'حسب الاتفاق');
+                    html += `<div class="product-card">
+                        ${imageHtml}
+                        <h3>${name}</h3>
+                        <p>${desc}</p>
+                        <p class="price">${price}</p>
+                        <p style="font-size:0.8rem; color:#8a9aaa;">الناشر: ${item.industrial_id?.company_name || item.industrial_id?.name || item.provider_id?.name || 'غير معروف'}</p>
+                    </div>`;
+                });
+                grid.innerHTML = html;
+            } catch(e) {
+                grid.innerHTML = '<p style="color:red;">❌ خطأ في التحميل</p>';
+            }
+        }
+
+        // ==============================
+        // دوال الإدارة (القائمة الجانبية)
+        // ==============================
+        async function loadProviderStats() {
             try {
                 const res = await fetch('/api/my-services');
                 const services = await res.json();
@@ -56,102 +192,158 @@
                 const requests = await res.json();
                 document.getElementById('statRequests').textContent = requests.length || 0;
             } catch(e) { console.error(e); }
-            try {
-                const res = await fetch('/api/admin/external-ads');
-                const ads = await res.json();
-                document.getElementById('statPaidAds').textContent = ads.length || 0;
-            } catch(e) { console.error(e); }
         }
 
-        document.querySelectorAll('.menu-item').forEach(item => {
-            item.addEventListener('click', function(e) {
+        async function loadServices() {
+            const content = document.getElementById('sectionContent');
+            content.innerHTML = '<h2>🛠️ خدماتي</h2><div class="card"><p>جاري التحميل...</p></div>';
+            try {
+                const res = await fetch('/api/my-services');
+                const data = await res.json();
+                if (!data || data.length === 0) {
+                    content.innerHTML = '<h2>🛠️ خدماتي</h2><div class="card"><p>📭 لم تنشر أي خدمة بعد.</p></div>';
+                    return;
+                }
+                let html = '<h2>🛠️ خدماتي</h2>';
+                data.forEach(s => {
+                    const statusText = s.is_approved ? (s.is_active ? '✅ منشورة' : '⏳ قيد المراجعة') : '⏳ قيد المراجعة';
+                    const statusColor = s.is_approved && s.is_active ? '#27ae60' : '#f39c12';
+                    const fileHtml = s.file_url ? (s.file_type === 'video' ? `<video controls style="max-width:200px;max-height:120px;border-radius:8px;margin:5px 0;"><source src="${s.file_url}"></video>` : `<img src="${s.file_url}" style="max-width:200px;max-height:120px;border-radius:8px;margin:5px 0;">`) : '';
+                    html += `<div class="card">
+                        <h3>${s.title}</h3>
+                        <p>${s.description}</p>
+                        <p><strong>التصنيف:</strong> ${s.category}</p>
+                        ${fileHtml}
+                        <p><span style="color:${statusColor};">${statusText}</span></p>
+                    </div>`;
+                });
+                content.innerHTML = html;
+            } catch(e) {
+                content.innerHTML = '<h2>🛠️ خدماتي</h2><div class="card"><p style="color:red;">❌ خطأ في التحميل</p></div>';
+            }
+        }
+
+        async function loadServiceRequests() {
+            const content = document.getElementById('sectionContent');
+            content.innerHTML = '<h2>📩 طلبات الخدمات</h2><div class="card"><p>جاري التحميل...</p></div>';
+            try {
+                const res = await fetch('/api/service-requests/received');
+                const data = await res.json();
+                if (!data || data.length === 0) {
+                    content.innerHTML = '<h2>📩 طلبات الخدمات</h2><div class="card"><p>📭 لا توجد طلبات واردة.</p></div>';
+                    return;
+                }
+                let html = '<h2>📩 طلبات الخدمات الواردة</h2>';
+                data.forEach(r => {
+                    const statusMap = { pending: '⏳ قيد الانتظار', accepted: '✅ مقبول', rejected: '❌ مرفوض' };
+                    const fileHtml = r.file_url ? (r.file_type === 'video' ? `<video controls style="max-width:200px;max-height:120px;border-radius:8px;margin:5px 0;"><source src="${r.file_url}"></video>` : `<img src="${r.file_url}" style="max-width:200px;max-height:120px;border-radius:8px;margin:5px 0;">`) : '';
+                    html += `<div class="card">
+                        <h3>طلب على: ${r.service_id?.title || 'خدمة'}</h3>
+                        <p><strong>من:</strong> ${r.requester_id?.name || 'مستخدم'} (${r.requester_role})</p>
+                        <p><strong>الرسالة:</strong> ${r.message || 'لا توجد'}</p>
+                        ${fileHtml}
+                        <p><strong>الحالة:</strong> ${statusMap[r.status] || r.status}</p>
+                        ${r.status === 'pending' ? `
+                            <div style="margin-top:10px;display:flex;gap:10px;">
+                                <button class="btn btn-sm btn-success" onclick="updateRequest('${r._id}','accepted')">✅ قبول</button>
+                                <button class="btn btn-sm btn-danger" onclick="updateRequest('${r._id}','rejected')">❌ رفض</button>
+                            </div>
+                        ` : ''}
+                    </div>`;
+                });
+                content.innerHTML = html;
+            } catch(e) {
+                content.innerHTML = '<h2>📩 طلبات الخدمات</h2><div class="card"><p style="color:red;">❌ خطأ في التحميل</p></div>';
+            }
+        }
+
+        async function updateRequest(requestId, status) {
+            if (!confirm(`تأكيد ${status === 'accepted' ? 'قبول' : 'رفض'} هذا الطلب؟`)) return;
+            try {
+                const res = await fetch(`/api/service-request/${requestId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ status })
+                });
+                const result = await res.json();
+                alert(result.message || (result.error ? '❌ ' + result.error : 'تم التحديث'));
+                if (res.ok) loadServiceRequests();
+            } catch(e) {
+                alert('فشل التحديث');
+                console.error(e);
+            }
+        }
+
+        function showAddService() {
+            const content = document.getElementById('sectionContent');
+            content.innerHTML = `
+                <h2>➕ إضافة خدمة جديدة</h2>
+                <div class="card">
+                    <form id="serviceForm" enctype="multipart/form-data">
+                        <div class="form-group"><label>عنوان الخدمة</label><input type="text" id="servTitle" required></div>
+                        <div class="form-group"><label>التصنيف</label>
+                            <select id="servCategory" required>
+                                <option value="">-- اختر --</option>
+                                <option>مقاولات</option><option>صيانة</option><option>نقل</option>
+                                <option>استشارات قانونية</option><option>محاسبة</option>
+                                <option>تقنية معلومات</option><option>خدمات عامة</option>
+                            </select>
+                        </div>
+                        <div class="form-group"><label>الوصف</label><textarea id="servDesc" rows="2" required></textarea></div>
+                        <div class="form-group"><label>نطاق السعر</label><input type="text" id="servPrice" placeholder="500-1000$ أو حسب الاتفاق"></div>
+                        <div class="form-group"><label>رقم التواصل</label><input type="text" id="servPhone"></div>
+                        <div class="form-group"><label>رفع ملف (صورة أو فيديو)</label><input type="file" id="servFile" accept="image/*,video/*"></div>
+                        <button type="submit">نشر الخدمة</button>
+                    </form>
+                </div>
+            `;
+            document.getElementById('serviceForm').addEventListener('submit', async (e) => {
                 e.preventDefault();
-                document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
-                this.classList.add('active');
-                const section = this.dataset.section;
-                const content = document.getElementById('sectionContent');
-                if (section === 'services') {
-                    content.innerHTML = '<h2>🛠️ خدماتي</h2><div class="card"><p>جاري التحميل...</p></div>';
-                } else if (section === 'requests') {
-                    content.innerHTML = '<h2>📩 طلبات الخدمات</h2><div class="card"><p>جاري التحميل...</p></div>';
-                } else if (section === 'add-service') {
-                    content.innerHTML = `
-                        <h2>➕ إضافة خدمة جديدة</h2>
-                        <div class="card">
-                            <form id="serviceForm" enctype="multipart/form-data">
-                                <div class="form-group"><label>عنوان الخدمة</label><input type="text" id="servTitle" required></div>
-                                <div class="form-group"><label>التصنيف</label>
-                                    <select id="servCategory" required>
-                                        <option value="">-- اختر --</option>
-                                        <option>مقاولات</option><option>صيانة</option><option>نقل</option>
-                                        <option>استشارات قانونية</option><option>محاسبة</option>
-                                        <option>تقنية معلومات</option><option>خدمات عامة</option>
-                                    </select>
-                                </div>
-                                <div class="form-group"><label>الوصف</label><textarea id="servDesc" rows="2" required></textarea></div>
-                                <div class="form-group"><label>نطاق السعر</label><input type="text" id="servPrice" placeholder="500-1000$ أو حسب الاتفاق"></div>
-                                <div class="form-group"><label>رقم التواصل</label><input type="text" id="servPhone"></div>
-                                <div class="form-group"><label>رفع ملف (صورة أو فيديو)</label><input type="file" id="servFile" accept="image/*,video/*"></div>
-                                <button type="submit">نشر الخدمة</button>
-                            </form>
-                        </div>
-                    `;
-                    document.getElementById('serviceForm').addEventListener('submit', async (e) => {
-                        e.preventDefault();
-                        const formData = new FormData();
-                        formData.append('title', document.getElementById('servTitle').value);
-                        formData.append('category', document.getElementById('servCategory').value);
-                        formData.append('description', document.getElementById('servDesc').value);
-                        formData.append('price_range', document.getElementById('servPrice').value);
-                        formData.append('contact_phone', document.getElementById('servPhone').value);
-                        const file = document.getElementById('servFile').files[0];
-                        if (file) formData.append('file', file);
-                        try {
-                            const res = await fetch('/api/services', { method: 'POST', body: formData });
-                            const result = await res.json();
-                            alert(result.message || (result.error ? '❌ ' + result.error : 'تم النشر'));
-                            if (res.ok) { document.getElementById('serviceForm').reset(); loadProviderData(); }
-                        } catch(e) { alert('فشل النشر'); }
-                    });
-                } else if (section === 'paid-ads') {
-                    content.innerHTML = `
-                        <h2>💰 الإعلانات الممولة</h2>
-                        <div class="card">
-                            <h3>إعلاناتي الممولة</h3>
-                            <div id="myPaidAds"><p>📭 لا توجد إعلانات حالياً</p></div>
-                        </div>
-                    `;
-                    async function loadPaidAds() {
-                        try {
-                            const res = await fetch('/api/admin/external-ads');
-                            const data = await res.json();
-                            const div = document.getElementById('myPaidAds');
-                            if (!data || data.length === 0) {
-                                div.innerHTML = '<p>📭 لا توجد إعلانات ممولة حالياً</p>';
-                                return;
-                            }
-                            let html = '';
-                            data.forEach(ad => {
-                                const fileHtml = ad.file_url ? 
-                                    (ad.file_type === 'video' ? 
-                                        `<video controls style="max-width:200px;max-height:150px;border-radius:8px;margin:5px 0;"><source src="${ad.file_url}"></video>` :
-                                        `<img src="${ad.file_url}" style="max-width:200px;max-height:150px;border-radius:8px;margin:5px 0;">`) : '';
-                                html += `<div class="item-card">
-                                    <strong>${ad.title}</strong> - ${ad.description || ''}<br>
-                                    ${fileHtml}<br>
-                                    المعلن: ${ad.advertiser_name} (${ad.advertiser_phone || ''})<br>
-                                    كود الدفع: <strong style="color:#27ae60;">${ad.payment_code || 'غير متوفر'}</strong><br>
-                                    الحالة: ${ad.is_active ? '✅ نشط' : '⛔ غير نشط'} | دفع: ${ad.payment_status === 'confirmed' ? '✅ مؤكد' : '⏳ قيد الانتظار'}<br>
-                                    ${ad.payment_status === 'confirmed' ? '' : '⏳ في انتظار تأكيد الدفع من الإدارة'}
-                                </div>`;
-                            });
-                            div.innerHTML = html;
-                        } catch(e) { console.error(e); }
+                const formData = new FormData();
+                formData.append('title', document.getElementById('servTitle').value);
+                formData.append('category', document.getElementById('servCategory').value);
+                formData.append('description', document.getElementById('servDesc').value);
+                formData.append('price_range', document.getElementById('servPrice').value);
+                formData.append('contact_phone', document.getElementById('servPhone').value);
+                const file = document.getElementById('servFile').files[0];
+                if (file) formData.append('file', file);
+                try {
+                    const res = await fetch('/api/services', { method: 'POST', body: formData });
+                    const result = await res.json();
+                    alert(result.message || (result.error ? '❌ ' + result.error : 'تم النشر'));
+                    if (res.ok) {
+                        document.getElementById('serviceForm').reset();
+                        loadProviderStats();
                     }
-                    loadPaidAds();
+                } catch(e) {
+                    alert('فشل النشر');
+                    console.error(e);
                 }
             });
+        }
+
+        // ==============================
+        // التنقل بين القوائم الجانبية والإدارة
+        // ==============================
+        document.querySelectorAll('.sidebar-menu .menu-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelectorAll('.sidebar-menu .menu-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                const section = this.dataset.section;
+                document.getElementById('marketContent').style.display = 'none';
+                document.getElementById('dashboardContent').style.display = 'block';
+                document.getElementById('statsGrid').style.display = 'grid';
+
+                if (section === 'services') loadServices();
+                else if (section === 'requests') loadServiceRequests();
+                else if (section === 'add-service') showAddService();
+            });
         });
+
+        // عند تحميل الصفحة، نعرض التبويبات أولاً
+        document.getElementById('dashboardContent').style.display = 'none';
+        loadMarketData('products');
 
         function logout() {
             if (confirm('تسجيل الخروج؟')) {
@@ -159,8 +351,8 @@
             }
         }
 
-        loadProviderData();
-        document.querySelector('.menu-item[data-section="services"]').click();
+        loadUserInfo();
+        loadProviderStats();
     </script>
 </body>
 </html>

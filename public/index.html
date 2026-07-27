@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aleppo Hub - السوق</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .market-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px 30px;
+            background: #fff;
+            border-bottom: 2px solid #f0f2f5;
+            flex-wrap: wrap;
+        }
+        .market-header .logo {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+        .market-header .logo .gold { color: #c9a03d; }
+        .market-header .auth-buttons {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .auth-buttons .btn-sm { padding: 6px 16px; font-size: 0.9rem; }
+
+        .main-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            padding: 15px 20px;
+            background: #f8fafc;
+            border-bottom: 1px solid #eef2f5;
+            flex-wrap: wrap;
+        }
+        .main-tabs .tab-btn {
+            padding: 10px 30px;
+            border: none;
+            background: transparent;
+            color: #4a5a6a;
+            font-weight: 600;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 1rem;
+        }
+        .main-tabs .tab-btn:hover { background: rgba(0,0,0,0.03); }
+        .main-tabs .tab-btn.active {
+            background: #c9a03d;
+            color: #fff;
+        }
+
+        .market-content { max-width: 1200px; margin: 30px auto; padding: 0 20px; }
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        .product-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .product-card img {
+            max-width: 100%;
+            max-height: 150px;
+            border-radius: 12px;
+            object-fit: cover;
+        }
+        .product-card h3 { color: #1e2a3a; margin: 10px 0; }
+        .product-card p { color: #5a6a7a; }
+        .product-card .price { color: #c9a03d; font-weight: bold; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        @media (max-width: 600px) {
+            .product-grid { grid-template-columns: 1fr; }
+            .market-header { flex-direction: column; gap: 10px; }
+            .main-tabs .tab-btn { padding: 8px 16px; font-size: 0.85rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="market-header">
+        <div class="logo">🏭 Aleppo <span class="gold">Hub</span></div>
+        <div class="auth-buttons" id="authButtons">
+            <a href="/login.html" class="btn-outline-nav">تسجيل الدخول</a>
+            <a href="/register.html" class="btn-primary-nav">إنشاء حساب</a>
+        </div>
+    </div>
+
+    <!-- ===== شريط التبويبات الرئيسية ===== -->
+    <div class="main-tabs">
+        <button class="tab-btn active" data-tab="products">📦 المنتجات</button>
+        <button class="tab-btn" data-tab="services">🛠️ الخدمات</button>
+        <button class="tab-btn" data-tab="ads">💰 الإعلانات</button>
+        <button class="tab-btn" data-tab="jobs">💼 الوظائف</button>
+    </div>
+
+    <div class="market-content">
+        <div id="productsTab" class="tab-content active"><div class="product-grid" id="productsGrid">جاري التحميل...</div></div>
+        <div id="servicesTab" class="tab-content"><div class="product-grid" id="servicesGrid">جاري التحميل...</div></div>
+        <div id="adsTab" class="tab-content"><div class="product-grid" id="adsGrid">جاري التحميل...</div></div>
+        <div id="jobsTab" class="tab-content"><div class="product-grid" id="jobsGrid">جاري التحميل...</div></div>
+    </div>
+
+    <footer style="text-align:center; padding:20px; color:#6a7a8a; border-top:1px solid #eee; margin-top:30px;">
+        تصميم <strong>عبدالرزاق جانم</strong> © 2026
+    </footer>
+
+    <script>
+        // التحقق من حالة تسجيل الدخول
+        (async function checkAuth() {
+            try {
+                const res = await fetch('/api/me');
+                if (res.ok) {
+                    const user = await res.json();
+                    document.getElementById('authButtons').innerHTML = `
+                        <span style="color:#1e2a3a;">مرحباً ${user.name}</span>
+                        <a href="/dashboard.html" class="btn-primary-nav">لوحة التحكم</a>
+                        <a href="#" onclick="logout()" style="color:#c0392b;">تسجيل الخروج</a>
+                    `;
+                }
+            } catch(e) {}
+        })();
+
+        async function logout() {
+            if (confirm('تسجيل الخروج؟')) {
+                await fetch('/api/logout', { method: 'POST' });
+                window.location.reload();
+            }
+        }
+
+        // التبويبات
+        document.querySelectorAll('.main-tabs .tab-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.main-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                const tab = this.dataset.tab;
+                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                document.getElementById(tab + 'Tab').classList.add('active');
+                loadMarketData(tab);
+            });
+        });
+
+        async function loadMarketData(type) {
+            const map = {
+                products: 'products',
+                services: 'services',
+                ads: 'external-ads',
+                jobs: 'jobs'
+            };
+            const gridId = type + 'Grid';
+            const grid = document.getElementById(gridId);
+            grid.innerHTML = 'جاري التحميل...';
+            try {
+                const res = await fetch(`/api/${map[type]}`);
+                const data = await res.json();
+                if (!data || data.length === 0) {
+                    grid.innerHTML = '<p style="text-align:center;color:#b8a06a;">📭 لا توجد عناصر معتمدة حالياً</p>';
+                    return;
+                }
+                let html = '';
+                data.forEach(item => {
+                    let imageHtml = '';
+                    if (item.file_url && item.file_url.startsWith('/uploads')) {
+                        imageHtml = `<img src="${item.file_url}" alt="${item.name || item.title}" onerror="this.style.display='none'">`;
+                    }
+                    const name = item.name || item.title;
+                    const desc = item.description || '';
+                    const price = item.price ? `${item.price} $` : (item.salary || item.price_range || 'حسب الاتفاق');
+                    html += `<div class="product-card">
+                        ${imageHtml}
+                        <h3>${name}</h3>
+                        <p>${desc}</p>
+                        <p class="price">${price}</p>
+                        <p style="font-size:0.8rem; color:#8a9aaa;">الناشر: ${item.industrial_id?.company_name || item.industrial_id?.name || item.provider_id?.name || 'غير معروف'}</p>
+                    </div>`;
+                });
+                grid.innerHTML = html;
+            } catch(e) {
+                grid.innerHTML = '<p style="color:red;">❌ خطأ في التحميل</p>';
+            }
+        }
+
+        // تحميل المنتجات افتراضياً
+        loadMarketData('products');
+    </script>
+</body>
+</html>

@@ -6,6 +6,49 @@
     <title>لوحة الأدمن - Aleppo Hub</title>
     <link rel="stylesheet" href="style.css">
     <style>
+        .main-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid #eef2f5;
+            padding-bottom: 10px;
+        }
+        .main-tabs .tab-btn {
+            padding: 8px 20px;
+            border: none;
+            background: transparent;
+            color: #4a5a6a;
+            font-weight: 600;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 0.95rem;
+        }
+        .main-tabs .tab-btn:hover { background: rgba(0,0,0,0.03); }
+        .main-tabs .tab-btn.active {
+            background: #c9a03d;
+            color: #fff;
+        }
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 20px;
+        }
+        .product-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .product-card img {
+            max-width: 100%;
+            max-height: 150px;
+            border-radius: 12px;
+            object-fit: cover;
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
         .request-card { background: #fff; padding: 15px; border-radius: 12px; margin-bottom: 12px; border-right: 4px solid #c9a03d; }
         .request-card .actions { margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap; }
         .badge-pending { background: #f39c12; color: #fff; padding: 2px 10px; border-radius: 20px; font-size: 0.8rem; }
@@ -20,7 +63,10 @@
     <nav class="navbar">
         <div class="nav-container">
             <div class="nav-logo"><span class="logo-icon">👑</span><span class="logo-text">Aleppo <span class="gold">Hub</span></span></div>
-            <div class="nav-links"><a href="/">الرئيسية</a><a href="#" onclick="logout()" style="color:#c0392b;">تسجيل الخروج</a></div>
+            <div class="nav-links">
+                <a href="/" class="active">السوق</a>
+                <a href="#" onclick="logout()" style="color:#c0392b;">تسجيل الخروج</a>
+            </div>
         </div>
     </nav>
 
@@ -38,7 +84,24 @@
         </aside>
 
         <main class="content-modern">
-            <div id="dashboardContent">
+            <!-- ===== شريط التبويبات الرئيسية ===== -->
+            <div class="main-tabs">
+                <button class="tab-btn active" data-tab="products">📦 المنتجات</button>
+                <button class="tab-btn" data-tab="services">🛠️ الخدمات</button>
+                <button class="tab-btn" data-tab="ads">💰 الإعلانات</button>
+                <button class="tab-btn" data-tab="jobs">💼 الوظائف</button>
+            </div>
+
+            <!-- ===== محتوى التبويبات ===== -->
+            <div id="marketContent">
+                <div id="productsTab" class="tab-content active"><div class="product-grid" id="productsGrid">جاري التحميل...</div></div>
+                <div id="servicesTab" class="tab-content"><div class="product-grid" id="servicesGrid">جاري التحميل...</div></div>
+                <div id="adsTab" class="tab-content"><div class="product-grid" id="adsGrid">جاري التحميل...</div></div>
+                <div id="jobsTab" class="tab-content"><div class="product-grid" id="jobsGrid">جاري التحميل...</div></div>
+            </div>
+
+            <!-- ===== أقسام الإدارة (تظهر عند اختيار القائمة الجانبية) ===== -->
+            <div id="dashboardContent" style="display:none;">
                 <div id="sectionContent"></div>
             </div>
         </main>
@@ -55,6 +118,63 @@
             } catch(e) { console.error(e); }
         }
 
+        // ==============================
+        // دوال السوق (التبويبات)
+        // ==============================
+        document.querySelectorAll('.main-tabs .tab-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.main-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                const tab = this.dataset.tab;
+                document.querySelectorAll('#marketContent .tab-content').forEach(t => t.classList.remove('active'));
+                document.getElementById(tab + 'Tab').classList.add('active');
+                loadMarketData(tab);
+            });
+        });
+
+        async function loadMarketData(type) {
+            const map = {
+                products: 'products',
+                services: 'services',
+                ads: 'external-ads',
+                jobs: 'jobs'
+            };
+            const gridId = type + 'Grid';
+            const grid = document.getElementById(gridId);
+            grid.innerHTML = 'جاري التحميل...';
+            try {
+                const res = await fetch(`/api/${map[type]}`);
+                const data = await res.json();
+                if (!data || data.length === 0) {
+                    grid.innerHTML = '<p style="text-align:center;color:#b8a06a;">📭 لا توجد عناصر معتمدة حالياً</p>';
+                    return;
+                }
+                let html = '';
+                data.forEach(item => {
+                    let imageHtml = '';
+                    if (item.file_url && item.file_url.startsWith('/uploads')) {
+                        imageHtml = `<img src="${item.file_url}" alt="${item.name || item.title}" onerror="this.style.display='none'">`;
+                    }
+                    const name = item.name || item.title;
+                    const desc = item.description || '';
+                    const price = item.price ? `${item.price} $` : (item.salary || item.price_range || 'حسب الاتفاق');
+                    html += `<div class="product-card">
+                        ${imageHtml}
+                        <h3>${name}</h3>
+                        <p>${desc}</p>
+                        <p class="price">${price}</p>
+                        <p style="font-size:0.8rem; color:#8a9aaa;">الناشر: ${item.industrial_id?.company_name || item.industrial_id?.name || item.provider_id?.name || 'غير معروف'}</p>
+                    </div>`;
+                });
+                grid.innerHTML = html;
+            } catch(e) {
+                grid.innerHTML = '<p style="color:red;">❌ خطأ في التحميل</p>';
+            }
+        }
+
+        // ==============================
+        // دوال الإدارة (الطلبات المعلقة)
+        // ==============================
         async function loadPendingRequests() {
             const content = document.getElementById('sectionContent');
             content.innerHTML = '<p>⏳ جاري التحميل...</p>';
@@ -226,13 +346,17 @@
             }
         }
 
-        document.querySelectorAll('.menu-item').forEach(item => {
+        document.querySelectorAll('.sidebar-menu .menu-item').forEach(item => {
             item.addEventListener('click', function(e) {
                 e.preventDefault();
-                document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+                document.querySelectorAll('.sidebar-menu .menu-item').forEach(i => i.classList.remove('active'));
                 this.classList.add('active');
-                if (this.dataset.section === 'pending') loadPendingRequests();
-                else if (this.dataset.section === 'confirm-payment') {
+                const section = this.dataset.section;
+                document.getElementById('marketContent').style.display = 'none';
+                document.getElementById('dashboardContent').style.display = 'block';
+
+                if (section === 'pending') loadPendingRequests();
+                else if (section === 'confirm-payment') {
                     document.getElementById('sectionContent').innerHTML = `
                         <h2>💰 تأكيد الدفع للإعلانات الممولة</h2>
                         <div class="card">
@@ -245,8 +369,11 @@
             });
         });
 
+        // عند تحميل الصفحة، نعرض التبويبات أولاً
+        document.getElementById('dashboardContent').style.display = 'none';
+        loadMarketData('products');
+
         loadUser();
-        loadPendingRequests();
     </script>
 </body>
 </html>

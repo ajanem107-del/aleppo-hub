@@ -5,12 +5,65 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة طالب التوظيف - Aleppo Hub</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* أنماط التبويبات العلوية */
+        .main-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid #eef2f5;
+            padding-bottom: 10px;
+        }
+        .main-tabs .tab-btn {
+            padding: 8px 20px;
+            border: none;
+            background: transparent;
+            color: #4a5a6a;
+            font-weight: 600;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 0.95rem;
+        }
+        .main-tabs .tab-btn:hover { background: rgba(0,0,0,0.03); }
+        .main-tabs .tab-btn.active {
+            background: #c9a03d;
+            color: #fff;
+        }
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 20px;
+        }
+        .product-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .product-card img {
+            max-width: 100%;
+            max-height: 150px;
+            border-radius: 12px;
+            object-fit: cover;
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .stats-grid { margin-bottom: 20px; }
+    </style>
 </head>
 <body>
     <nav class="navbar">
         <div class="nav-container">
-            <div class="nav-logo"><span class="logo-icon">🏭</span><span class="logo-text">Aleppo <span class="gold">Hub</span></span></div>
-            <div class="nav-links"><a href="/">الرئيسية</a><a href="#" onclick="logout()" style="color:#c0392b;">تسجيل الخروج</a></div>
+            <div class="nav-logo">
+                <span class="logo-icon">👷</span>
+                <span class="logo-text">Aleppo <span class="gold">Hub</span></span>
+            </div>
+            <div class="nav-links">
+                <a href="/" class="active">السوق</a>
+                <a href="#" onclick="logout()" style="color:#c0392b;">تسجيل الخروج</a>
+            </div>
         </div>
     </nav>
 
@@ -30,10 +83,27 @@
         </aside>
 
         <main class="content-modern">
-            <div id="dashboardContent">
+            <!-- ===== شريط التبويبات الرئيسية ===== -->
+            <div class="main-tabs">
+                <button class="tab-btn active" data-tab="products">📦 المنتجات</button>
+                <button class="tab-btn" data-tab="services">🛠️ الخدمات</button>
+                <button class="tab-btn" data-tab="ads">💰 الإعلانات</button>
+                <button class="tab-btn" data-tab="jobs">💼 الوظائف</button>
+            </div>
+
+            <!-- ===== محتوى التبويبات ===== -->
+            <div id="marketContent">
+                <div id="productsTab" class="tab-content active"><div class="product-grid" id="productsGrid">جاري التحميل...</div></div>
+                <div id="servicesTab" class="tab-content"><div class="product-grid" id="servicesGrid">جاري التحميل...</div></div>
+                <div id="adsTab" class="tab-content"><div class="product-grid" id="adsGrid">جاري التحميل...</div></div>
+                <div id="jobsTab" class="tab-content"><div class="product-grid" id="jobsGrid">جاري التحميل...</div></div>
+            </div>
+
+            <!-- ===== أقسام الإدارة (تظهر عند اختيار القائمة الجانبية) ===== -->
+            <div id="dashboardContent" style="display:none;">
                 <div class="stats-grid" id="statsGrid">
-                    <div class="stat-card"><span id="statJobs">0</span><small>وظائف متاحة</small></div>
-                    <div class="stat-card"><span id="statApplied">0</span><small>طلباتي المقدمة</small></div>
+                    <div class="stat-card"><span id="statAvailableJobs">0</span><small>وظائف متاحة</small></div>
+                    <div class="stat-card"><span id="statApplied">0</span><small>طلباتي</small></div>
                 </div>
                 <div id="sectionContent"></div>
             </div>
@@ -41,49 +111,243 @@
     </div>
 
     <script>
-        document.getElementById('userName').textContent = 'محمد العامل';
-        document.getElementById('userEmail').textContent = 'mohamed@worker.com';
-
-        document.querySelectorAll('.menu-item').forEach(item => {
-            item.addEventListener('click', function(e) {
-                e.preventDefault();
-                document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
-                this.classList.add('active');
-                const section = this.dataset.section;
-                const content = document.getElementById('sectionContent');
-                if (section === 'profile') {
-                    content.innerHTML = `
-                        <h2>📝 ملفي الشخصي</h2>
-                        <div class="card">
-                            <form>
-                                <div class="form-group"><label>المهارات</label><input type="text" placeholder="لحام، كهرباء"></div>
-                                <div class="form-group"><label>الخبرات</label><textarea rows="2"></textarea></div>
-                                <div class="form-group"><label>رفع السيرة الذاتية (PDF)</label><input type="file" accept=".pdf"></div>
-                                <button>تحديث الملف</button>
-                            </form>
-                        </div>
-                    `;
-                } else if (section === 'jobs') {
-                    content.innerHTML = '<h2>💼 الوظائف المتاحة</h2><div class="card"><p>جاري التحميل...</p></div>';
-                } else if (section === 'applications') {
-                    content.innerHTML = '<h2>📋 طلباتي المقدمة</h2><div class="card"><p>جاري التحميل...</p></div>';
-                } else if (section === 'service-request') {
-                    content.innerHTML = `
-                        <h2>🛠️ طلب خدمة</h2>
-                        <div class="card">
-                            <form>
-                                <div class="form-group"><label>معرف الخدمة</label><input type="text"></div>
-                                <div class="form-group"><label>الرسالة</label><textarea rows="2"></textarea></div>
-                                <button>إرسال الطلب</button>
-                            </form>
-                        </div>
-                    `;
+        // ==============================
+        // بيانات المستخدم
+        // ==============================
+        async function loadUserInfo() {
+            try {
+                const res = await fetch('/api/me');
+                if (res.ok) {
+                    const user = await res.json();
+                    document.getElementById('userName').textContent = user.name || 'طالب توظيف';
+                    document.getElementById('userEmail').textContent = user.email || 'worker@example.com';
                 }
+            } catch(e) { console.error('خطأ في جلب معلومات المستخدم', e); }
+        }
+
+        // ==============================
+        // دوال السوق (التبويبات)
+        // ==============================
+        document.querySelectorAll('.main-tabs .tab-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.main-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                const tab = this.dataset.tab;
+                document.querySelectorAll('#marketContent .tab-content').forEach(t => t.classList.remove('active'));
+                document.getElementById(tab + 'Tab').classList.add('active');
+                loadMarketData(tab);
             });
         });
 
-        function logout() { if (confirm('تسجيل الخروج؟')) window.location.href = '/'; }
-        document.querySelector('.menu-item[data-section="profile"]').click();
+        async function loadMarketData(type) {
+            const map = {
+                products: 'products',
+                services: 'services',
+                ads: 'external-ads',
+                jobs: 'jobs'
+            };
+            const gridId = type + 'Grid';
+            const grid = document.getElementById(gridId);
+            grid.innerHTML = 'جاري التحميل...';
+            try {
+                const res = await fetch(`/api/${map[type]}`);
+                const data = await res.json();
+                if (!data || data.length === 0) {
+                    grid.innerHTML = '<p style="text-align:center;color:#b8a06a;">📭 لا توجد عناصر معتمدة حالياً</p>';
+                    return;
+                }
+                let html = '';
+                data.forEach(item => {
+                    let imageHtml = '';
+                    if (item.file_url && item.file_url.startsWith('/uploads')) {
+                        imageHtml = `<img src="${item.file_url}" alt="${item.name || item.title}" onerror="this.style.display='none'">`;
+                    }
+                    const name = item.name || item.title;
+                    const desc = item.description || '';
+                    const price = item.price ? `${item.price} $` : (item.salary || item.price_range || 'حسب الاتفاق');
+                    html += `<div class="product-card">
+                        ${imageHtml}
+                        <h3>${name}</h3>
+                        <p>${desc}</p>
+                        <p class="price">${price}</p>
+                        <p style="font-size:0.8rem; color:#8a9aaa;">الناشر: ${item.industrial_id?.company_name || item.industrial_id?.name || item.provider_id?.name || 'غير معروف'}</p>
+                    </div>`;
+                });
+                grid.innerHTML = html;
+            } catch(e) {
+                grid.innerHTML = '<p style="color:red;">❌ خطأ في التحميل</p>';
+            }
+        }
+
+        // ==============================
+        // دوال الإدارة (القائمة الجانبية)
+        // ==============================
+        async function loadWorkerStats() {
+            try {
+                const res = await fetch('/api/jobs');
+                const jobs = await res.json();
+                document.getElementById('statAvailableJobs').textContent = jobs.length || 0;
+            } catch(e) { console.error(e); }
+            try {
+                const res = await fetch('/api/my-applications');
+                const apps = await res.json();
+                document.getElementById('statApplied').textContent = apps.length || 0;
+            } catch(e) { console.error(e); }
+        }
+
+        function showProfile() {
+            const content = document.getElementById('sectionContent');
+            content.innerHTML = `
+                <h2>📝 ملفي الشخصي</h2>
+                <div class="card">
+                    <form id="profileForm">
+                        <div class="form-group"><label>المهارات (مفصولة بفواصل)</label><input type="text" id="workerSkills" placeholder="لحام، كهرباء، تشغيل آلات"></div>
+                        <div class="form-group"><label>الخبرات السابقة</label><textarea id="workerExp" rows="2"></textarea></div>
+                        <div class="form-group"><label>رفع السيرة الذاتية (PDF)</label><input type="file" id="workerResume" accept=".pdf"></div>
+                        <button type="submit">تحديث الملف</button>
+                    </form>
+                </div>
+            `;
+            document.getElementById('profileForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                alert('⚠️ تم حفظ الملف الشخصي (يتطلب تطوير نقطة نهاية التحديث في الخادم).');
+            });
+        }
+
+        async function loadAvailableJobs() {
+            const content = document.getElementById('sectionContent');
+            content.innerHTML = '<h2>💼 الوظائف المتاحة</h2><div class="card"><p>جاري التحميل...</p></div>';
+            try {
+                const res = await fetch('/api/jobs');
+                const data = await res.json();
+                if (!data || data.length === 0) {
+                    content.innerHTML = '<h2>💼 الوظائف المتاحة</h2><div class="card"><p>📭 لا توجد وظائف حالياً</p></div>';
+                    return;
+                }
+                let html = '<h2>💼 الوظائف المتاحة</h2>';
+                data.forEach(j => {
+                    const fileHtml = j.file_url ? (j.file_type === 'video' ? `<video controls style="max-width:200px;max-height:120px;border-radius:8px;margin:5px 0;"><source src="${j.file_url}"></video>` : `<img src="${j.file_url}" style="max-width:200px;max-height:120px;border-radius:8px;margin:5px 0;">`) : '';
+                    html += `<div class="card">
+                        <h3>${j.title}</h3>
+                        <p>${j.description}</p>
+                        <p><strong>المتطلبات:</strong> ${j.requirements || 'غير محددة'}</p>
+                        <p><strong>الراتب:</strong> ${j.salary || 'حسب الاتفاق'}</p>
+                        ${fileHtml}
+                        <button class="btn btn-sm" onclick="applyJob('${j._id}')">📩 تقديم طلب</button>
+                    </div>`;
+                });
+                content.innerHTML = html;
+            } catch(e) {
+                content.innerHTML = '<h2>💼 الوظائف المتاحة</h2><div class="card"><p style="color:red;">❌ خطأ في التحميل</p></div>';
+            }
+        }
+
+        async function applyJob(jobId) {
+            const msg = prompt('أدخل رسالة تقديمك (اختياري):');
+            try {
+                const res = await fetch('/api/apply', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ job_id: jobId, message: msg || '' })
+                });
+                const result = await res.json();
+                alert(result.message || (result.error ? '❌ ' + result.error : 'تم'));
+                if (res.ok) loadMyApplications();
+            } catch(e) { alert('فشل التقديم'); }
+        }
+
+        async function loadMyApplications() {
+            const content = document.getElementById('sectionContent');
+            content.innerHTML = '<h2>📋 طلباتي المقدمة</h2><div class="card"><p>جاري التحميل...</p></div>';
+            try {
+                const res = await fetch('/api/my-applications');
+                const data = await res.json();
+                if (!data || data.length === 0) {
+                    content.innerHTML = '<h2>📋 طلباتي المقدمة</h2><div class="card"><p>📭 لم تقدم على أي وظيفة بعد.</p></div>';
+                    return;
+                }
+                let html = '<h2>📋 طلباتي المقدمة</h2>';
+                data.forEach(a => {
+                    const statusMap = { pending: '⏳ قيد الانتظار', accepted: '✅ مقبول', rejected: '❌ مرفوض' };
+                    const fileHtml = a.file_url ? (a.file_type === 'pdf' ? `<a href="${a.file_url}" target="_blank" class="btn btn-sm">📄 عرض السيرة الذاتية (PDF)</a>` : a.file_type === 'video' ? `<video controls style="max-width:200px;max-height:120px;border-radius:8px;margin:5px 0;"><source src="${a.file_url}"></video>` : `<img src="${a.file_url}" style="max-width:200px;max-height:120px;border-radius:8px;margin:5px 0;">`) : '';
+                    html += `<div class="card">
+                        <h3>${a.job_id?.title || 'وظيفة'}</h3>
+                        <p><strong>الحالة:</strong> ${statusMap[a.status] || a.status}</p>
+                        ${fileHtml}
+                    </div>`;
+                });
+                content.innerHTML = html;
+            } catch(e) {
+                content.innerHTML = '<h2>📋 طلباتي المقدمة</h2><div class="card"><p style="color:red;">❌ خطأ في التحميل</p></div>';
+            }
+        }
+
+        function showServiceRequest() {
+            const content = document.getElementById('sectionContent');
+            content.innerHTML = `
+                <h2>🛠️ طلب خدمة</h2>
+                <div class="card">
+                    <form id="serviceRequestForm" enctype="multipart/form-data">
+                        <div class="form-group"><label>معرف الخدمة (من قائمة الخدمات)</label><input type="text" id="serviceId" required></div>
+                        <div class="form-group"><label>الرسالة</label><textarea id="serviceMsg" rows="2"></textarea></div>
+                        <div class="form-group"><label>رفع ملف (صورة أو فيديو)</label><input type="file" id="serviceFile" accept="image/*,video/*"></div>
+                        <button type="submit">إرسال الطلب</button>
+                    </form>
+                </div>
+            `;
+            document.getElementById('serviceRequestForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData();
+                formData.append('service_id', document.getElementById('serviceId').value);
+                formData.append('message', document.getElementById('serviceMsg').value);
+                const file = document.getElementById('serviceFile').files[0];
+                if (file) formData.append('file', file);
+                try {
+                    const res = await fetch('/api/service-request', { method: 'POST', body: formData });
+                    const result = await res.json();
+                    alert(result.message || (result.error ? '❌ ' + result.error : 'تم الإرسال'));
+                    if (res.ok) {
+                        document.getElementById('serviceRequestForm').reset();
+                    }
+                } catch(e) {
+                    alert('فشل إرسال الطلب');
+                    console.error(e);
+                }
+            });
+        }
+
+        // ==============================
+        // التنقل بين القوائم الجانبية والإدارة
+        // ==============================
+        document.querySelectorAll('.sidebar-menu .menu-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelectorAll('.sidebar-menu .menu-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                const section = this.dataset.section;
+                document.getElementById('marketContent').style.display = 'none';
+                document.getElementById('dashboardContent').style.display = 'block';
+                document.getElementById('statsGrid').style.display = 'grid';
+
+                if (section === 'profile') showProfile();
+                else if (section === 'jobs') loadAvailableJobs();
+                else if (section === 'applications') loadMyApplications();
+                else if (section === 'service-request') showServiceRequest();
+            });
+        });
+
+        // عند تحميل الصفحة، نعرض التبويبات أولاً
+        document.getElementById('dashboardContent').style.display = 'none';
+        loadMarketData('products');
+
+        function logout() {
+            if (confirm('تسجيل الخروج؟')) {
+                fetch('/api/logout', { method: 'POST' }).then(() => window.location.href = '/');
+            }
+        }
+
+        loadUserInfo();
+        loadWorkerStats();
     </script>
 </body>
 </html>

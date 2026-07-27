@@ -5,6 +5,53 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>لوحة الصناعي - Aleppo Hub</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        /* أنماط التبويبات العلوية */
+        .main-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid #eef2f5;
+            padding-bottom: 10px;
+        }
+        .main-tabs .tab-btn {
+            padding: 8px 20px;
+            border: none;
+            background: transparent;
+            color: #4a5a6a;
+            font-weight: 600;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 0.95rem;
+        }
+        .main-tabs .tab-btn:hover { background: rgba(0,0,0,0.03); }
+        .main-tabs .tab-btn.active {
+            background: #c9a03d;
+            color: #fff;
+        }
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 20px;
+        }
+        .product-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .product-card img {
+            max-width: 100%;
+            max-height: 150px;
+            border-radius: 12px;
+            object-fit: cover;
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .stats-grid { margin-bottom: 20px; }
+    </style>
 </head>
 <body>
     <nav class="navbar">
@@ -14,7 +61,7 @@
                 <span class="logo-text">Aleppo <span class="gold">Hub</span></span>
             </div>
             <div class="nav-links">
-                <a href="/">الرئيسية</a>
+                <a href="/" class="active">السوق</a>
                 <a href="#" onclick="logout()" style="color:#c0392b;">تسجيل الخروج</a>
             </div>
         </div>
@@ -37,21 +84,38 @@
         </aside>
 
         <main class="content-modern">
-            <div id="dashboardContent">
+            <!-- ===== شريط التبويبات الرئيسية ===== -->
+            <div class="main-tabs">
+                <button class="tab-btn active" data-tab="products">📦 المنتجات</button>
+                <button class="tab-btn" data-tab="services">🛠️ الخدمات</button>
+                <button class="tab-btn" data-tab="ads">💰 الإعلانات</button>
+                <button class="tab-btn" data-tab="jobs">💼 الوظائف</button>
+            </div>
+
+            <!-- ===== محتوى التبويبات ===== -->
+            <div id="marketContent">
+                <div id="productsTab" class="tab-content active"><div class="product-grid" id="productsGrid">جاري التحميل...</div></div>
+                <div id="servicesTab" class="tab-content"><div class="product-grid" id="servicesGrid">جاري التحميل...</div></div>
+                <div id="adsTab" class="tab-content"><div class="product-grid" id="adsGrid">جاري التحميل...</div></div>
+                <div id="jobsTab" class="tab-content"><div class="product-grid" id="jobsGrid">جاري التحميل...</div></div>
+            </div>
+
+            <!-- ===== أقسام الإدارة (تظهر عند اختيار القائمة الجانبية) ===== -->
+            <div id="dashboardContent" style="display:none;">
                 <div class="stats-grid" id="statsGrid">
                     <div class="stat-card"><span id="statProducts">0</span><small>منتجاتي</small></div>
                     <div class="stat-card"><span id="statJobs">0</span><small>وظائفي</small></div>
                     <div class="stat-card"><span id="statApplications">0</span><small>طلبات واردة</small></div>
                 </div>
-                <div id="sectionContent">
-                    <div class="card"><p>جاري التحميل...</p></div>
-                </div>
+                <div id="sectionContent"></div>
             </div>
         </main>
     </div>
 
     <script>
-        // بيانات المستخدم (سيتم جلبها من API)
+        // ==============================
+        // بيانات المستخدم
+        // ==============================
         async function loadUserInfo() {
             try {
                 const res = await fetch('/api/me');
@@ -64,7 +128,61 @@
         }
 
         // ==============================
-        // تحميل الإحصائيات
+        // دوال السوق (التبويبات)
+        // ==============================
+        document.querySelectorAll('.main-tabs .tab-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.main-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                const tab = this.dataset.tab;
+                document.querySelectorAll('#marketContent .tab-content').forEach(t => t.classList.remove('active'));
+                document.getElementById(tab + 'Tab').classList.add('active');
+                loadMarketData(tab);
+            });
+        });
+
+        async function loadMarketData(type) {
+            const map = {
+                products: 'products',
+                services: 'services',
+                ads: 'external-ads',
+                jobs: 'jobs'
+            };
+            const gridId = type + 'Grid';
+            const grid = document.getElementById(gridId);
+            grid.innerHTML = 'جاري التحميل...';
+            try {
+                const res = await fetch(`/api/${map[type]}`);
+                const data = await res.json();
+                if (!data || data.length === 0) {
+                    grid.innerHTML = '<p style="text-align:center;color:#b8a06a;">📭 لا توجد عناصر معتمدة حالياً</p>';
+                    return;
+                }
+                let html = '';
+                data.forEach(item => {
+                    let imageHtml = '';
+                    if (item.file_url && item.file_url.startsWith('/uploads')) {
+                        imageHtml = `<img src="${item.file_url}" alt="${item.name || item.title}" onerror="this.style.display='none'">`;
+                    }
+                    const name = item.name || item.title;
+                    const desc = item.description || '';
+                    const price = item.price ? `${item.price} $` : (item.salary || item.price_range || 'حسب الاتفاق');
+                    html += `<div class="product-card">
+                        ${imageHtml}
+                        <h3>${name}</h3>
+                        <p>${desc}</p>
+                        <p class="price">${price}</p>
+                        <p style="font-size:0.8rem; color:#8a9aaa;">الناشر: ${item.industrial_id?.company_name || item.industrial_id?.name || item.provider_id?.name || 'غير معروف'}</p>
+                    </div>`;
+                });
+                grid.innerHTML = html;
+            } catch(e) {
+                grid.innerHTML = '<p style="color:red;">❌ خطأ في التحميل</p>';
+            }
+        }
+
+        // ==============================
+        // دوال الإدارة (القائمة الجانبية)
         // ==============================
         async function loadIndustrialStats() {
             try {
@@ -92,18 +210,12 @@
             } catch(e) { console.error('خطأ في إحصائيات الطلبات', e); }
         }
 
-        // ==============================
-        // عرض المنتجات مع معالجة الأخطاء
-        // ==============================
+        // عرض أقسام الإدارة
         async function loadProducts() {
             const content = document.getElementById('sectionContent');
-            content.innerHTML = '<div class="card"><p>⏳ جاري تحميل المنتجات...</p></div>';
+            content.innerHTML = '<h2>📦 منتجاتي</h2><div class="card"><p>جاري التحميل...</p></div>';
             try {
                 const res = await fetch('/api/my-products');
-                if (!res.ok) {
-                    const err = await res.json();
-                    throw new Error(err.error || 'فشل التحميل');
-                }
                 const data = await res.json();
                 if (!data || data.length === 0) {
                     content.innerHTML = '<h2>📦 منتجاتي</h2><div class="card"><p>📭 لم تقم بإضافة أي منتج بعد.</p></div>';
@@ -113,10 +225,7 @@
                 data.forEach(p => {
                     const statusText = p.is_approved ? (p.is_active ? '✅ منشور' : '⏳ قيد المراجعة') : '⏳ قيد المراجعة';
                     const statusColor = p.is_approved && p.is_active ? '#27ae60' : '#f39c12';
-                    const fileHtml = p.file_url ? 
-                        (p.file_type === 'video' ? 
-                            `<video controls style="max-width:200px;max-height:120px;border-radius:8px;margin:5px 0;"><source src="${p.file_url}"></video>` :
-                            `<img src="${p.file_url}" style="max-width:200px;max-height:120px;border-radius:8px;margin:5px 0;">`) : '';
+                    const fileHtml = p.file_url ? (p.file_type === 'video' ? `<video controls style="max-width:200px;max-height:120px;border-radius:8px;margin:5px 0;"><source src="${p.file_url}"></video>` : `<img src="${p.file_url}" style="max-width:200px;max-height:120px;border-radius:8px;margin:5px 0;">`) : '';
                     html += `<div class="card">
                         <h3>${p.name}</h3>
                         <p>${p.description || ''}</p>
@@ -127,23 +236,15 @@
                 });
                 content.innerHTML = html;
             } catch(e) {
-                console.error('خطأ في تحميل المنتجات:', e);
-                content.innerHTML = `<h2>📦 منتجاتي</h2><div class="card"><p style="color:red;">❌ حدث خطأ أثناء تحميل المنتجات: ${e.message}</p></div>`;
+                content.innerHTML = '<h2>📦 منتجاتي</h2><div class="card"><p style="color:red;">❌ خطأ في التحميل</p></div>';
             }
         }
 
-        // ==============================
-        // عرض الوظائف مع معالجة الأخطاء
-        // ==============================
         async function loadJobs() {
             const content = document.getElementById('sectionContent');
-            content.innerHTML = '<div class="card"><p>⏳ جاري تحميل الوظائف...</p></div>';
+            content.innerHTML = '<h2>💼 وظائفي</h2><div class="card"><p>جاري التحميل...</p></div>';
             try {
                 const res = await fetch('/api/my-jobs');
-                if (!res.ok) {
-                    const err = await res.json();
-                    throw new Error(err.error || 'فشل التحميل');
-                }
                 const data = await res.json();
                 if (!data || data.length === 0) {
                     content.innerHTML = '<h2>💼 وظائفي</h2><div class="card"><p>📭 لم تنشر أي وظيفة بعد.</p></div>';
@@ -153,10 +254,7 @@
                 data.forEach(j => {
                     const statusText = j.is_approved ? (j.is_active ? '✅ منشورة' : '⏳ قيد المراجعة') : '⏳ قيد المراجعة';
                     const statusColor = j.is_approved && j.is_active ? '#27ae60' : '#f39c12';
-                    const fileHtml = j.file_url ? 
-                        (j.file_type === 'video' ? 
-                            `<video controls style="max-width:200px;max-height:120px;border-radius:8px;margin:5px 0;"><source src="${j.file_url}"></video>` :
-                            `<img src="${j.file_url}" style="max-width:200px;max-height:120px;border-radius:8px;margin:5px 0;">`) : '';
+                    const fileHtml = j.file_url ? (j.file_type === 'video' ? `<video controls style="max-width:200px;max-height:120px;border-radius:8px;margin:5px 0;"><source src="${j.file_url}"></video>` : `<img src="${j.file_url}" style="max-width:200px;max-height:120px;border-radius:8px;margin:5px 0;">`) : '';
                     html += `<div class="card">
                         <h3>${j.title}</h3>
                         <p>${j.description}</p>
@@ -167,23 +265,15 @@
                 });
                 content.innerHTML = html;
             } catch(e) {
-                console.error('خطأ في تحميل الوظائف:', e);
-                content.innerHTML = `<h2>💼 وظائفي</h2><div class="card"><p style="color:red;">❌ حدث خطأ أثناء تحميل الوظائف: ${e.message}</p></div>`;
+                content.innerHTML = '<h2>💼 وظائفي</h2><div class="card"><p style="color:red;">❌ خطأ في التحميل</p></div>';
             }
         }
 
-        // ==============================
-        // عرض طلبات التوظيف
-        // ==============================
         async function loadApplications() {
             const content = document.getElementById('sectionContent');
-            content.innerHTML = '<div class="card"><p>⏳ جاري تحميل الطلبات...</p></div>';
+            content.innerHTML = '<h2>📩 طلبات التوظيف</h2><div class="card"><p>جاري التحميل...</p></div>';
             try {
                 const res = await fetch('/api/industrial/applications');
-                if (!res.ok) {
-                    const err = await res.json();
-                    throw new Error(err.error || 'فشل التحميل');
-                }
                 const data = await res.json();
                 if (!data || data.length === 0) {
                     content.innerHTML = '<h2>📩 طلبات التوظيف</h2><div class="card"><p>📭 لا توجد طلبات على وظائفك حتى الآن.</p></div>';
@@ -192,12 +282,7 @@
                 let html = '<h2>📩 طلبات التوظيف الواردة</h2>';
                 data.forEach(a => {
                     const statusMap = { pending: '⏳ قيد الانتظار', accepted: '✅ مقبول', rejected: '❌ مرفوض' };
-                    const fileHtml = a.file_url ? 
-                        (a.file_type === 'pdf' ? 
-                            `<a href="${a.file_url}" target="_blank" class="btn btn-sm">📄 عرض السيرة الذاتية (PDF)</a>` :
-                            a.file_type === 'video' ? 
-                            `<video controls style="max-width:200px;max-height:120px;border-radius:8px;margin:5px 0;"><source src="${a.file_url}"></video>` :
-                            `<img src="${a.file_url}" style="max-width:200px;max-height:120px;border-radius:8px;margin:5px 0;">`) : '';
+                    const fileHtml = a.file_url ? (a.file_type === 'pdf' ? `<a href="${a.file_url}" target="_blank" class="btn btn-sm">📄 عرض السيرة الذاتية (PDF)</a>` : a.file_type === 'video' ? `<video controls style="max-width:200px;max-height:120px;border-radius:8px;margin:5px 0;"><source src="${a.file_url}"></video>` : `<img src="${a.file_url}" style="max-width:200px;max-height:120px;border-radius:8px;margin:5px 0;">`) : '';
                     html += `<div class="card">
                         <h3>${a.job_id?.title || 'وظيفة غير محددة'}</h3>
                         <p><strong>المتقدم:</strong> ${a.worker_id?.name || 'مستخدم'}</p>
@@ -215,8 +300,7 @@
                 });
                 content.innerHTML = html;
             } catch(e) {
-                console.error('خطأ في تحميل طلبات التوظيف:', e);
-                content.innerHTML = `<h2>📩 طلبات التوظيف</h2><div class="card"><p style="color:red;">❌ حدث خطأ أثناء تحميل الطلبات: ${e.message}</p></div>`;
+                content.innerHTML = '<h2>📩 طلبات التوظيف</h2><div class="card"><p style="color:red;">❌ خطأ في التحميل</p></div>';
             }
         }
 
@@ -237,9 +321,6 @@
             }
         }
 
-        // ==============================
-        // نماذج الإضافة
-        // ==============================
         function showAddProduct() {
             const content = document.getElementById('sectionContent');
             content.innerHTML = `
@@ -319,14 +400,19 @@
         }
 
         // ==============================
-        // التنقل بين الأقسام
+        // التنقل بين القوائم الجانبية والإدارة
         // ==============================
-        document.querySelectorAll('.menu-item').forEach(item => {
+        document.querySelectorAll('.sidebar-menu .menu-item').forEach(item => {
             item.addEventListener('click', function(e) {
                 e.preventDefault();
-                document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+                document.querySelectorAll('.sidebar-menu .menu-item').forEach(i => i.classList.remove('active'));
                 this.classList.add('active');
                 const section = this.dataset.section;
+                // إخفاء التبويبات العلوية وإظهار محتوى الإدارة
+                document.getElementById('marketContent').style.display = 'none';
+                document.getElementById('dashboardContent').style.display = 'block';
+                document.getElementById('statsGrid').style.display = 'grid';
+
                 if (section === 'products') loadProducts();
                 else if (section === 'jobs') loadJobs();
                 else if (section === 'applications') loadApplications();
@@ -335,19 +421,18 @@
             });
         });
 
+        // عند تحميل الصفحة، نعرض التبويبات أولاً
+        document.getElementById('dashboardContent').style.display = 'none';
+        loadMarketData('products');
+
         function logout() {
             if (confirm('تسجيل الخروج؟')) {
                 fetch('/api/logout', { method: 'POST' }).then(() => window.location.href = '/');
             }
         }
 
-        // ==============================
-        // تحميل الصفحة
-        // ==============================
         loadUserInfo();
         loadIndustrialStats();
-        // تفعيل القسم الافتراضي (منتجاتي)
-        document.querySelector('.menu-item[data-section="products"]').click();
     </script>
 </body>
 </html>
