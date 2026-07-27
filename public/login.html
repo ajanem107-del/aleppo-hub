@@ -6,7 +6,6 @@
     <title>تسجيل الدخول - Aleppo Hub</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* تنسيق خاص لقسم "عن المنصة" داخل صفحة تسجيل الدخول */
         .about-platform {
             margin-top: 30px;
             padding: 25px;
@@ -15,35 +14,12 @@
             border: 1px solid #eef2f5;
             text-align: center;
         }
-        .about-platform h3 {
-            color: #c9a03d;
-            margin-bottom: 12px;
-            font-size: 1.3rem;
-            border-bottom: 2px solid #c9a03d;
-            display: inline-block;
-            padding-bottom: 6px;
-        }
-        .about-platform p {
-            color: #4a5a6a;
-            line-height: 1.8;
-            font-size: 0.95rem;
-            margin: 8px 0;
-        }
-        .about-platform strong {
-            color: #1e2a3a;
-        }
-        .about-platform .contact-info {
-            margin-top: 10px;
-            font-size: 0.9rem;
-            color: #6a7a8a;
-        }
-        .about-platform .contact-info span {
-            color: #c9a03d;
-            font-weight: 600;
-        }
-        @media (max-width: 600px) {
-            .auth-card { padding: 20px; }
-        }
+        .about-platform h3 { color: #c9a03d; margin-bottom: 12px; font-size: 1.3rem; border-bottom: 2px solid #c9a03d; display: inline-block; padding-bottom: 6px; }
+        .about-platform p { color: #4a5a6a; line-height: 1.8; font-size: 0.95rem; margin: 8px 0; }
+        .about-platform strong { color: #1e2a3a; }
+        .about-platform .contact-info { margin-top: 10px; font-size: 0.9rem; color: #6a7a8a; }
+        .about-platform .contact-info span { color: #c9a03d; font-weight: 600; }
+        @media (max-width: 600px) { .auth-card { padding: 20px; } }
     </style>
 </head>
 <body>
@@ -82,17 +58,10 @@
                 <div id="loginMessage"></div>
             </form>
 
-            <!-- ===== قسم "عن المنصة" ===== -->
             <div class="about-platform">
                 <h3>📖 عن المنصة</h3>
-                <p>
-                    تم إنشاء هذه المنصة لخدمة الصناعيين وطالبي التوظيف ولمن يرغب بنشر خدمات أو منتجات 
-                    بهدف بيعها في <strong>المدينة الصناعية بحلب</strong>.
-                </p>
-                <p>
-                    توفر المنصة بيئة متكاملة للتواصل بين الصناعيين، العمال، ومقدمي الخدمات، 
-                    مع إمكانية نشر الإعلانات الممولة والحصول على كود دفع فريد لتأكيد النشر.
-                </p>
+                <p>تم إنشاء هذه المنصة لخدمة الصناعيين وطالبي التوظيف ولمن يرغب بنشر خدمات أو منتجات بهدف بيعها في <strong>المدينة الصناعية بحلب</strong>.</p>
+                <p>توفر المنصة بيئة متكاملة للتواصل بين الصناعيين، العمال، ومقدمي الخدمات، مع إمكانية نشر الإعلانات الممولة والحصول على كود دفع فريد لتأكيد النشر.</p>
                 <div class="contact-info">
                     <strong>إعداد وتصميم:</strong> عبدالرزاق جانم<br>
                     <span>📞 للتواصل: 0968858595</span>
@@ -119,9 +88,7 @@
                 const data = await res.json();
                 if (res.ok) {
                     document.getElementById('loginMessage').innerHTML = `<div class="alert alert-success">✅ ${data.message}</div>`;
-                    setTimeout(() => {
-                        window.location.href = data.redirect || '/';
-                    }, 1500);
+                    setTimeout(() => { window.location.href = data.redirect || '/'; }, 1500);
                 } else {
                     document.getElementById('loginMessage').innerHTML = `<div class="alert alert-error">❌ ${data.error}</div>`;
                 }

@@ -26,10 +26,7 @@
             font-size: 0.95rem;
         }
         .main-tabs .tab-btn:hover { background: rgba(0,0,0,0.03); }
-        .main-tabs .tab-btn.active {
-            background: #c9a03d;
-            color: #fff;
-        }
+        .main-tabs .tab-btn.active { background: #c9a03d; color: #fff; }
         .product-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -84,7 +81,6 @@
         </aside>
 
         <main class="content-modern">
-            <!-- ===== شريط التبويبات الرئيسية ===== -->
             <div class="main-tabs">
                 <button class="tab-btn active" data-tab="products">📦 المنتجات</button>
                 <button class="tab-btn" data-tab="services">🛠️ الخدمات</button>
@@ -92,7 +88,6 @@
                 <button class="tab-btn" data-tab="jobs">💼 الوظائف</button>
             </div>
 
-            <!-- ===== محتوى التبويبات ===== -->
             <div id="marketContent">
                 <div id="productsTab" class="tab-content active"><div class="product-grid" id="productsGrid">جاري التحميل...</div></div>
                 <div id="servicesTab" class="tab-content"><div class="product-grid" id="servicesGrid">جاري التحميل...</div></div>
@@ -100,7 +95,6 @@
                 <div id="jobsTab" class="tab-content"><div class="product-grid" id="jobsGrid">جاري التحميل...</div></div>
             </div>
 
-            <!-- ===== أقسام الإدارة (تظهر عند اختيار القائمة الجانبية) ===== -->
             <div id="dashboardContent" style="display:none;">
                 <div id="sectionContent"></div>
             </div>
@@ -118,9 +112,6 @@
             } catch(e) { console.error(e); }
         }
 
-        // ==============================
-        // دوال السوق (التبويبات)
-        // ==============================
         document.querySelectorAll('.main-tabs .tab-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.main-tabs .tab-btn').forEach(b => b.classList.remove('active'));
@@ -133,12 +124,7 @@
         });
 
         async function loadMarketData(type) {
-            const map = {
-                products: 'products',
-                services: 'services',
-                ads: 'external-ads',
-                jobs: 'jobs'
-            };
+            const map = { products: 'products', services: 'services', ads: 'external-ads', jobs: 'jobs' };
             const gridId = type + 'Grid';
             const grid = document.getElementById(gridId);
             grid.innerHTML = 'جاري التحميل...';
@@ -172,9 +158,6 @@
             }
         }
 
-        // ==============================
-        // دوال الإدارة (الطلبات المعلقة)
-        // ==============================
         async function loadPendingRequests() {
             const content = document.getElementById('sectionContent');
             content.innerHTML = '<p>⏳ جاري التحميل...</p>';
@@ -188,7 +171,6 @@
 
                 let html = '<h2>📋 الطلبات المعلقة</h2>';
 
-                // 1. المنتجات
                 if (data.products && data.products.length > 0) {
                     html += `<div class="section-title"><h3>📦 منتجات (${data.products.length})</h3></div>`;
                     data.products.forEach(p => {
@@ -205,7 +187,6 @@
                     });
                 }
 
-                // 2. الوظائف
                 if (data.jobs && data.jobs.length > 0) {
                     html += `<div class="section-title"><h3>💼 وظائف (${data.jobs.length})</h3></div>`;
                     data.jobs.forEach(j => {
@@ -222,7 +203,6 @@
                     });
                 }
 
-                // 3. الخدمات
                 if (data.services && data.services.length > 0) {
                     html += `<div class="section-title"><h3>🛠️ خدمات (${data.services.length})</h3></div>`;
                     data.services.forEach(s => {
@@ -239,7 +219,6 @@
                     });
                 }
 
-                // 4. طلبات التوظيف
                 if (data.applications && data.applications.length > 0) {
                     html += `<div class="section-title"><h3>📩 طلبات توظيف (${data.applications.length})</h3></div>`;
                     data.applications.forEach(a => {
@@ -256,7 +235,6 @@
                     });
                 }
 
-                // 5. طلبات الخدمات
                 if (data.serviceRequests && data.serviceRequests.length > 0) {
                     html += `<div class="section-title"><h3>📩 طلبات خدمات (${data.serviceRequests.length})</h3></div>`;
                     data.serviceRequests.forEach(r => {
@@ -274,7 +252,6 @@
                     });
                 }
 
-                // 6. الإعلانات الممولة
                 if (data.ads && data.ads.length > 0) {
                     html += `<div class="section-title"><h3>💰 إعلانات ممولة (${data.ads.length})</h3></div>`;
                     data.ads.forEach(a => {
@@ -369,7 +346,6 @@
             });
         });
 
-        // عند تحميل الصفحة، نعرض التبويبات أولاً
         document.getElementById('dashboardContent').style.display = 'none';
         loadMarketData('products');
 

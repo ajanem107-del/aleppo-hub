@@ -6,7 +6,6 @@
     <title>لوحة الصناعي - Aleppo Hub</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        /* أنماط التبويبات العلوية */
         .main-tabs {
             display: flex;
             gap: 8px;
@@ -27,10 +26,7 @@
             font-size: 0.95rem;
         }
         .main-tabs .tab-btn:hover { background: rgba(0,0,0,0.03); }
-        .main-tabs .tab-btn.active {
-            background: #c9a03d;
-            color: #fff;
-        }
+        .main-tabs .tab-btn.active { background: #c9a03d; color: #fff; }
         .product-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
@@ -84,7 +80,6 @@
         </aside>
 
         <main class="content-modern">
-            <!-- ===== شريط التبويبات الرئيسية ===== -->
             <div class="main-tabs">
                 <button class="tab-btn active" data-tab="products">📦 المنتجات</button>
                 <button class="tab-btn" data-tab="services">🛠️ الخدمات</button>
@@ -92,7 +87,6 @@
                 <button class="tab-btn" data-tab="jobs">💼 الوظائف</button>
             </div>
 
-            <!-- ===== محتوى التبويبات ===== -->
             <div id="marketContent">
                 <div id="productsTab" class="tab-content active"><div class="product-grid" id="productsGrid">جاري التحميل...</div></div>
                 <div id="servicesTab" class="tab-content"><div class="product-grid" id="servicesGrid">جاري التحميل...</div></div>
@@ -100,7 +94,6 @@
                 <div id="jobsTab" class="tab-content"><div class="product-grid" id="jobsGrid">جاري التحميل...</div></div>
             </div>
 
-            <!-- ===== أقسام الإدارة (تظهر عند اختيار القائمة الجانبية) ===== -->
             <div id="dashboardContent" style="display:none;">
                 <div class="stats-grid" id="statsGrid">
                     <div class="stat-card"><span id="statProducts">0</span><small>منتجاتي</small></div>
@@ -113,9 +106,6 @@
     </div>
 
     <script>
-        // ==============================
-        // بيانات المستخدم
-        // ==============================
         async function loadUserInfo() {
             try {
                 const res = await fetch('/api/me');
@@ -127,9 +117,6 @@
             } catch(e) { console.error('خطأ في جلب معلومات المستخدم', e); }
         }
 
-        // ==============================
-        // دوال السوق (التبويبات)
-        // ==============================
         document.querySelectorAll('.main-tabs .tab-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.main-tabs .tab-btn').forEach(b => b.classList.remove('active'));
@@ -142,12 +129,7 @@
         });
 
         async function loadMarketData(type) {
-            const map = {
-                products: 'products',
-                services: 'services',
-                ads: 'external-ads',
-                jobs: 'jobs'
-            };
+            const map = { products: 'products', services: 'services', ads: 'external-ads', jobs: 'jobs' };
             const gridId = type + 'Grid';
             const grid = document.getElementById(gridId);
             grid.innerHTML = 'جاري التحميل...';
@@ -181,9 +163,6 @@
             }
         }
 
-        // ==============================
-        // دوال الإدارة (القائمة الجانبية)
-        // ==============================
         async function loadIndustrialStats() {
             try {
                 const resProducts = await fetch('/api/my-products');
@@ -210,7 +189,6 @@
             } catch(e) { console.error('خطأ في إحصائيات الطلبات', e); }
         }
 
-        // عرض أقسام الإدارة
         async function loadProducts() {
             const content = document.getElementById('sectionContent');
             content.innerHTML = '<h2>📦 منتجاتي</h2><div class="card"><p>جاري التحميل...</p></div>';
@@ -399,16 +377,12 @@
             });
         }
 
-        // ==============================
-        // التنقل بين القوائم الجانبية والإدارة
-        // ==============================
         document.querySelectorAll('.sidebar-menu .menu-item').forEach(item => {
             item.addEventListener('click', function(e) {
                 e.preventDefault();
                 document.querySelectorAll('.sidebar-menu .menu-item').forEach(i => i.classList.remove('active'));
                 this.classList.add('active');
                 const section = this.dataset.section;
-                // إخفاء التبويبات العلوية وإظهار محتوى الإدارة
                 document.getElementById('marketContent').style.display = 'none';
                 document.getElementById('dashboardContent').style.display = 'block';
                 document.getElementById('statsGrid').style.display = 'grid';
@@ -421,7 +395,6 @@
             });
         });
 
-        // عند تحميل الصفحة، نعرض التبويبات أولاً
         document.getElementById('dashboardContent').style.display = 'none';
         loadMarketData('products');
 
