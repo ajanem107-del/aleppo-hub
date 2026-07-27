@@ -50,10 +50,7 @@
                 if (res.ok) {
                     document.getElementById('loginMessage').innerHTML = `<div class="alert alert-success">✅ ${data.message}</div>`;
                     setTimeout(() => {
-                        // توجيه إلى الصفحة التي كان يحاول الوصول إليها
-                        const redirect = sessionStorage.getItem('redirectAfterLogin') || '/';
-                        sessionStorage.removeItem('redirectAfterLogin');
-                        window.location.href = redirect;
+                        window.location.href = data.redirect || '/';
                     }, 1500);
                 } else {
                     document.getElementById('loginMessage').innerHTML = `<div class="alert alert-error">❌ ${data.error}</div>`;

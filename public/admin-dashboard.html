@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة الأدمن - Aleppo Hub</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .request-card { background: #fff; padding: 15px; border-radius: 12px; margin-bottom: 12px; border-right: 4px solid #c9a03d; }
+        .request-card .actions { margin-top: 10px; display: flex; gap: 10px; }
+        .badge-pending { background: #f39c12; color: #fff; padding: 2px 10px; border-radius: 20px; font-size: 0.8rem; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo"><span class="logo-icon">🏭</span><span class="logo-text">Aleppo <span class="gold">Hub</span></span></div>
+            <div class="nav-links"><a href="/">الرئيسية</a><a href="#" onclick="logout()" style="color:#c0392b;">تسجيل الخروج</a></div>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <aside class="sidebar-modern">
+            <div class="user-profile">
+                <div class="avatar">👑</div>
+                <h3 id="adminName">المدير العام</h3>
+                <p id="adminEmail">admin@aleppo.com</p>
+            </div>
+            <nav class="sidebar-menu">
+                <a href="#" class="menu-item active" data-section="pending">📋 الطلبات المعلقة</a>
+                <a href="#" class="menu-item" data-section="stats">📊 إحصائيات</a>
+            </nav>
+        </aside>
+
+        <main class="content-modern">
+            <div id="dashboardContent">
+                <div id="sectionContent"></div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // جلب بيانات المستخدم
+        async function loadUser() {
+            try {
+                const res = await fetch('/api/me');
+                if (!res.ok) { window.location.href = '/login.html'; return; }
+                const user = await res.json();
+                document.getElementById('adminName').textContent = user.name;
+                document.getElementById('adminEmail').textContent = user.email;
+            } catch(e) { console.error(e); }
+        }
+
+        // جلب الطلبات المعلقة
+        async function loadPendingRequests() {
+            const content = document.getElementById('sectionContent');
+            content.innerHTML = '<p>جاري التحميل...</p>';
+            try {
+                const res = await fetch('/api/admin/pending-requests');
+                const data = await res.json();
+                let html = '<h2>📋 الطلبات المعلقة</h2>';
+                
+                // الوظائف
+                if (data.jobs && data.jobs.length > 0) {
+                    html += `<h3>💼 وظائف (${data.jobs.length})</h3>`;
+                    data.jobs.forEach(j => {
+                        html += `<div class="request-card">
+                            <strong>${j.title}</strong> - ${j.description || ''}<br>
+                            الناشر: ${j.industrial_id?.company_name || j.industrial_id?.name || 'غير معروف'}<br>
+                            <span class="badge-pending">⏳ قيد المراجعة</span>
+                            <div class="actions">
+                                <button class="btn btn-sm btn-success" onclick="approveRequest('job','${j._id}')">✅ موافقة</button>
+                                <button class="btn btn-sm btn-danger" onclick="rejectRequest('job','${j._id}')">❌ رفض</button>
+                            </div>
+                        </div>`;
+                    });
+                }
+
+                // طلبات التوظيف
+                if (data.applications && data.applications.length > 0) {
+                    html += `<h3>📩 طلبات توظيف (${data.applications.length})</h3>`;
+                    data.applications.forEach(a => {
+                        html += `<div class="request-card">
+                            <strong>${a.job_id?.title || 'وظيفة'}</strong> - مقدم من: ${a.worker_id?.name || 'مستخدم'}<br>
+                            الرسالة: ${a.message || 'لا توجد'}<br>
+                            <span class="badge-pending">⏳ قيد المراجعة</span>
+                            <div class="actions">
+                                <button class="btn btn-sm btn-success" onclick="approveRequest('application','${a._id}')">✅ موافقة</button>
+                                <button class="btn btn-sm btn-danger" onclick="rejectRequest('application','${a._id}')">❌ رفض</button>
+                            </div>
+                        </div>`;
+                    });
+                }
+
+                // الخدمات
+                if (data.services && data.services.length > 0) {
+                    html += `<h3>🛠️ خدمات (${data.services.length})</h3>`;
+                    data.services.forEach(s => {
+                        html += `<div class="request-card">
+                            <strong>${s.title}</strong> - ${s.category}<br>
+                            المقدم: ${s.provider_id?.name || 'غير معروف'}<br>
+                            <span class="badge-pending">⏳ قيد المراجعة</span>
+                            <div class="actions">
+                                <button class="btn btn-sm btn-success" onclick="approveRequest('service','${s._id}')">✅ موافقة</button>
+                                <button class="btn btn-sm btn-danger" onclick="rejectRequest('service','${s._id}')">❌ رفض</button>
+                            </div>
+                        </div>`;
+                    });
+                }
+
+                // طلبات الخدمات
+                if (data.serviceRequests && data.serviceRequests.length > 0) {
+                    html += `<h3>📩 طلبات خدمات (${data.serviceRequests.length})</h3>`;
+                    data.serviceRequests.forEach(r => {
+                        html += `<div class="request-card">
+                            <strong>طلب على: ${r.service_id?.title || 'خدمة'}</strong><br>
+                            من: ${r.requester_id?.name || 'مستخدم'}<br>
+                            الرسالة: ${r.message || 'لا توجد'}<br>
+                            <span class="badge-pending">⏳ قيد المراجعة</span>
+                            <div class="actions">
+                                <button class="btn btn-sm btn-success" onclick="approveRequest('serviceRequest','${r._id}')">✅ موافقة</button>
+                                <button class="btn btn-sm btn-danger" onclick="rejectRequest('serviceRequest','${r._id}')">❌ رفض</button>
+                            </div>
+                        </div>`;
+                    });
+                }
+
+                // الإعلانات الممولة
+                if (data.ads && data.ads.length > 0) {
+                    html += `<h3>💰 إعلانات ممولة (${data.ads.length})</h3>`;
+                    data.ads.forEach(a => {
+                        html += `<div class="request-card">
+                            <strong>${a.title}</strong> - ${a.description || ''}<br>
+                            المعلن: ${a.advertiser_name || 'غير معروف'}<br>
+                            <span class="badge-pending">⏳ قيد المراجعة</span>
+                            <div class="actions">
+                                <button class="btn btn-sm btn-success" onclick="approveRequest('ad','${a._id}')">✅ موافقة</button>
+                                <button class="btn btn-sm btn-danger" onclick="rejectRequest('ad','${a._id}')">❌ رفض</button>
+                            </div>
+                        </div>`;
+                    });
+                }
+
+                if (!data.jobs?.length && !data.applications?.length && !data.services?.length && !data.serviceRequests?.length && !data.ads?.length) {
+                    html += '<div class="card"><p>✅ لا توجد طلبات معلقة حالياً</p></div>';
+                }
+
+                content.innerHTML = html;
+            } catch(e) {
+                content.innerHTML = '<p style="color:red;">❌ خطأ في تحميل الطلبات</p>';
+                console.error(e);
+            }
+        }
+
+        // الموافقة على طلب
+        async function approveRequest(type, id) {
+            if (!confirm('تأكيد الموافقة على هذا الطلب؟')) return;
+            try {
+                const res = await fetch(`/api/admin/approve/${type}/${id}`, { method: 'PUT' });
+                const result = await res.json();
+                alert(result.message || (result.error ? '❌ ' + result.error : 'تم'));
+                if (res.ok) loadPendingRequests();
+            } catch(e) { alert('فشل الموافقة'); }
+        }
+
+        // رفض طلب
+        async function rejectRequest(type, id) {
+            if (!confirm('تأكيد رفض وحذف هذا الطلب؟')) return;
+            try {
+                const res = await fetch(`/api/admin/reject/${type}/${id}`, { method: 'DELETE' });
+                const result = await res.json();
+                alert(result.message || (result.error ? '❌ ' + result.error : 'تم'));
+                if (res.ok) loadPendingRequests();
+            } catch(e) { alert('فشل الرفض'); }
+        }
+
+        function logout() {
+            if (confirm('تسجيل الخروج؟')) {
+                fetch('/api/logout', { method: 'POST' }).then(() => window.location.href = '/');
+            }
+        }
+
+        // التنقل بين الأقسام
+        document.querySelectorAll('.menu-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                if (this.dataset.section === 'pending') loadPendingRequests();
+                else if (this.dataset.section === 'stats') {
+                    document.getElementById('sectionContent').innerHTML = '<h2>📊 إحصائيات</h2><div class="card"><p>جاري التحميل...</p></div>';
+                }
+            });
+        });
+
+        loadUser();
+        loadPendingRequests();
+    </script>
+</body>
+</html>
