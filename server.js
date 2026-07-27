@@ -4,11 +4,12 @@ const path = require('path');
 const bodyParser = require('body-parser');
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
+const multer = require('multer');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// ===== رابط قاعدة البيانات (استخدم رابطك الخاص) =====
+// ===== رابط قاعدة البيانات =====
 const MONGODB_URI = 'mongodb+srv://ajanem107_db_user:a12s12d12@cluster0.za1bebp.mongodb.net/?retryWrites=true&w=majority';
 
 // ===== الاتصال بقاعدة البيانات =====
@@ -16,11 +17,21 @@ mongoose.connect(MONGODB_URI)
   .then(() => console.log('✅ تم الاتصال بـ MongoDB بنجاح'))
   .catch(err => console.error('❌ فشل الاتصال:', err));
 
-// ===== ✅ هذا هو السطر المطلوب (يخدم الملفات الثابتة من مجلد public) =====
-app.use(express.static(path.join(__dirname, 'public')));
+// ===== إعداد رفع الصور =====
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'public/uploads/');
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + path.extname(file.originalname));
+    }
+});
+const upload = multer({ storage: storage });
 
-// ===== باقي الـ middleware =====
+// ===== Middleware =====
 app.use(bodyParser.json());
+app.use(express.static(path.join(__dirname, 'public')));
 app.use(session({
   secret: 'aleppo_industrial_secret_key_2026',
   resave: false,
@@ -29,8 +40,25 @@ app.use(session({
 }));
 
 // ============================================================
+// دالة التحقق من المصادقة (لحماية اللوحات)
+// ============================================================
+function requireAuth(req, res, next) {
+    if (req.session.userId) {
+        return next();
+    }
+    const redirectUrl = req.originalUrl;
+    res.redirect(`/login.html?redirect=${encodeURIComponent(redirectUrl)}`);
+}
+
+// ===== تطبيق الحماية على لوحات التحكم =====
+app.get('/industrial-panel.html', requireAuth);
+app.get('/worker-panel.html', requireAuth);
+app.get('/provider-panel.html', requireAuth);
+
+// ============================================================
 // نماذج البيانات (Schemas)
 // ============================================================
+
 const userSchema = new mongoose.Schema({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
@@ -53,7 +81,7 @@ const productSchema = new mongoose.Schema({
   category: String,
   image_url: String,
   quantity: Number,
-  is_active: { type: Boolean, default: false }, // غير نشط حتى الموافقة
+  is_active: { type: Boolean, default: false },
   created_at: { type: Date, default: Date.now }
 });
 
@@ -224,7 +252,7 @@ app.get('/api/me', async (req, res) => {
 });
 
 // ============================================================
-// واجهات المنتجات (مع التحكم بالنشر)
+// واجهات المنتجات
 // ============================================================
 
 app.get('/api/products', async (req, res) => {
@@ -512,7 +540,7 @@ app.put('/api/service-request/:id', isAuthenticated, isRole('provider'), async (
 });
 
 // ============================================================
-// واجهات الإعلانات الخارجية (مدفوعة)
+// واجهات الإعلانات الخارجية (مع رفع الصور)
 // ============================================================
 
 app.get('/api/external-ads', async (req, res) => {
@@ -524,9 +552,10 @@ app.get('/api/external-ads', async (req, res) => {
   }
 });
 
-app.post('/api/admin/external-ad', isAuthenticated, isRole('admin'), async (req, res) => {
+app.post('/api/admin/external-ad', isAuthenticated, isRole('admin'), upload.single('image'), async (req, res) => {
   try {
-    const { title, description, image_url, link_url, advertiser_name, advertiser_phone, advertiser_email } = req.body;
+    const { title, description, link_url, advertiser_name, advertiser_phone, advertiser_email } = req.body;
+    const image_url = req.file ? `/uploads/${req.file.filename}` : '';
     const fee = await Setting.findOne({ key: 'ad_fee' });
     const amount = fee ? fee.value : 10;
     const ad = new ExternalAd({

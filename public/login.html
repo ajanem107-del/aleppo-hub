@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول - Aleppo Hub</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo"><span class="logo-icon">🏭</span><span class="logo-text">Aleppo <span class="gold">Hub</span></span></div>
+            <div class="nav-links"><a href="/">الرئيسية</a></div>
+        </div>
+    </nav>
+
+    <section class="auth-page">
+        <div class="auth-card">
+            <h2>🔑 تسجيل الدخول</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label>📧 البريد الإلكتروني</label>
+                    <input type="email" id="loginEmail" required>
+                </div>
+                <div class="form-group">
+                    <label>🔑 كلمة المرور</label>
+                    <input type="password" id="loginPassword" required>
+                </div>
+                <button type="submit">دخول</button>
+                <p style="margin-top:15px; text-align:center;">
+                    ليس لديك حساب؟ <a href="/register.html" style="color:#c9a03d; font-weight:600;">سجل الآن</a>
+                </p>
+                <div id="loginMessage"></div>
+            </form>
+        </div>
+    </section>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('loginEmail').value;
+            const password = document.getElementById('loginPassword').value;
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    document.getElementById('loginMessage').innerHTML = `<div class="alert alert-success">✅ ${data.message}</div>`;
+                    setTimeout(() => {
+                        // توجيه إلى الصفحة التي كان يحاول الوصول إليها
+                        const redirect = sessionStorage.getItem('redirectAfterLogin') || '/';
+                        sessionStorage.removeItem('redirectAfterLogin');
+                        window.location.href = redirect;
+                    }, 1500);
+                } else {
+                    document.getElementById('loginMessage').innerHTML = `<div class="alert alert-error">❌ ${data.error}</div>`;
+                }
+            } catch(err) {
+                document.getElementById('loginMessage').innerHTML = `<div class="alert alert-error">❌ خطأ في الاتصال</div>`;
+            }
+        });
+    </script>
+</body>
+</html>
