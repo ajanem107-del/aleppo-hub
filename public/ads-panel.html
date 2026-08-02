@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>الإعلانات الممولة - Aleppo Hub</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .main-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            border-bottom: 1px solid #eef2f5;
+            padding-bottom: 10px;
+        }
+        .main-tabs .tab-btn {
+            padding: 8px 20px;
+            border: none;
+            background: transparent;
+            color: #4a5a6a;
+            font-weight: 600;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: 0.3s;
+            font-size: 0.95rem;
+        }
+        .main-tabs .tab-btn:hover { background: rgba(0,0,0,0.03); }
+        .main-tabs .tab-btn.active { background: #c9a03d; color: #fff; }
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 20px;
+        }
+        .product-card {
+            background: #fff;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+        .product-card img {
+            max-width: 100%;
+            max-height: 150px;
+            border-radius: 12px;
+            object-fit: cover;
+        }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="nav-logo">
+                <span class="logo-icon">💰</span>
+                <span class="logo-text">Aleppo <span class="gold">Hub</span></span>
+            </div>
+            <div class="nav-links">
+                <a href="/" class="active">السوق</a>
+                <a href="#" onclick="logout()" style="color:#c0392b;">تسجيل الخروج</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <aside class="sidebar-modern">
+            <div class="user-profile">
+                <div class="avatar">💰</div>
+                <h3 id="userName">إعلانات ممولة</h3>
+                <p id="userEmail">ads@example.com</p>
+            </div>
+            <nav class="sidebar-menu">
+                <a href="#" class="menu-item active" data-section="my-ads">📋 إعلاناتي</a>
+                <a href="#" class="menu-item" data-section="add-ad">➕ إضافة إعلان</a>
+            </nav>
+        </aside>
+
+        <main class="content-modern">
+            <!-- التبويبات العلوية -->
+            <div class="main-tabs">
+                <button class="tab-btn active" data-tab="products">📦 المنتجات</button>
+                <button class="tab-btn" data-tab="services">🛠️ الخدمات</button>
+                <button class="tab-btn" data-tab="ads">💰 الإعلانات</button>
+                <button class="tab-btn" data-tab="jobs">💼 الوظائف</button>
+            </div>
+
+            <!-- محتوى التبويبات -->
+            <div id="marketContent">
+                <div id="productsTab" class="tab-content active"><div class="product-grid" id="productsGrid">جاري التحميل...</div></div>
+                <div id="servicesTab" class="tab-content"><div class="product-grid" id="servicesGrid">جاري التحميل...</div></div>
+                <div id="adsTab" class="tab-content"><div class="product-grid" id="adsGrid">جاري التحميل...</div></div>
+                <div id="jobsTab" class="tab-content"><div class="product-grid" id="jobsGrid">جاري التحميل...</div></div>
+            </div>
+
+            <!-- قسم إدارة الإعلانات -->
+            <div id="dashboardContent" style="display:none;">
+                <div id="sectionContent"></div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // بيانات المستخدم
+        document.getElementById('userName').textContent = 'معلن ممول';
+        document.getElementById('userEmail').textContent = 'ads@example.com';
+
+        // التبويبات العلوية
+        document.querySelectorAll('.main-tabs .tab-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.main-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                const tab = this.dataset.tab;
+                document.querySelectorAll('#marketContent .tab-content').forEach(t => t.classList.remove('active'));
+                document.getElementById(tab + 'Tab').classList.add('active');
+                loadMarketData(tab);
+            });
+        });
+
+        async function loadMarketData(type) {
+            const map = { products: 'products', services: 'services', ads: 'external-ads', jobs: 'jobs' };
+            const gridId = type + 'Grid';
+            const grid = document.getElementById(gridId);
+            grid.innerHTML = 'جاري التحميل...';
+            try {
+                const res = await fetch(`/api/${map[type]}`);
+                const data = await res.json();
+                if (!data || data.length === 0) {
+                    grid.innerHTML = '<p style="text-align:center;color:#b8a06a;">📭 لا توجد عناصر معتمدة حالياً</p>';
+                    return;
+                }
+                let html = '';
+                data.forEach(item => {
+                    let imageHtml = '';
+                    if (item.file_url && item.file_url.startsWith('/uploads')) {
+                        imageHtml = `<img src="${item.file_url}" alt="${item.name || item.title}" onerror="this.style.display='none'">`;
+                    }
+                    const name = item.name || item.title;
+                    const desc = item.description || '';
+                    const price = item.price ? `${item.price} $` : (item.salary || item.price_range || 'حسب الاتفاق');
+                    html += `<div class="product-card">
+                        ${imageHtml}
+                        <h3>${name}</h3>
+                        <p>${desc}</p>
+                        <p class="price">${price}</p>
+                        <p style="font-size:0.8rem; color:#8a9aaa;">الناشر: ${item.industrial_id?.company_name || item.industrial_id?.name || item.provider_id?.name || 'غير معروف'}</p>
+                    </div>`;
+                });
+                grid.innerHTML = html;
+            } catch(e) {
+                grid.innerHTML = '<p style="color:red;">❌ خطأ في التحميل</p>';
+            }
+        }
+
+        // دوال الإدارة (إعلاناتي)
+        async function loadMyAds() {
+            const content = document.getElementById('sectionContent');
+            try {
+                const res = await fetch('/api/admin/external-ads');
+                const data = await res.json();
+                if (!data || data.length === 0) {
+                    content.innerHTML = '<h2>📋 إعلاناتي</h2><div class="card"><p>📭 لا توجد إعلانات ممولة حالياً</p></div>';
+                    return;
+                }
+                let html = '<h2>📋 إعلاناتي الممولة</h2>';
+                data.forEach(ad => {
+                    const fileHtml = ad.file_url ? (ad.file_type === 'video' ? `<video controls style="max-width:200px;max-height:120px;border-radius:8px;margin:5px 0;"><source src="${ad.file_url}"></video>` : `<img src="${ad.file_url}" style="max-width:200px;max-height:120px;border-radius:8px;margin:5px 0;">`) : '';
+                    html += `<div class="card">
+                        <h3>${ad.title}</h3>
+                        <p>${ad.description || ''}</p>
+                        ${fileHtml}
+                        <p><strong>المعلن:</strong> ${ad.advertiser_name || 'غير معروف'} (${ad.advertiser_phone || ''})</p>
+                        <p><strong>كود الدفع:</strong> <span style="color:#27ae60;font-weight:bold;">${ad.payment_code || 'غير متوفر'}</span></p>
+                        <p><strong>المبلغ:</strong> ${ad.ad_fee}$</p>
+                        <p><strong>الحالة:</strong> ${ad.is_active ? '✅ نشط' : '⛔ غير نشط'} | ${ad.payment_status === 'confirmed' ? '✅ دفع مؤكد' : '⏳ في انتظار التأكيد'}</p>
+                    </div>`;
+                });
+                content.innerHTML = html;
+            } catch(e) {
+                content.innerHTML = '<h2>📋 إعلاناتي</h2><div class="card"><p style="color:red;">❌ خطأ في التحميل</p></div>';
+            }
+        }
+
+        function showAddAd() {
+            const content = document.getElementById('sectionContent');
+            content.innerHTML = `
+                <h2>➕ إضافة إعلان ممول جديد</h2>
+                <div class="card">
+                    <form id="adForm" enctype="multipart/form-data">
+                        <div class="form-group"><label>عنوان الإعلان</label><input type="text" id="adTitle" required></div>
+                        <div class="form-group"><label>الوصف</label><textarea id="adDesc" rows="2"></textarea></div>
+                        <div class="form-group"><label>رفع ملف (صورة أو فيديو)</label><input type="file" id="adFile" accept="image/*,video/*" required></div>
+                        <div class="form-group"><label>رابط الإعلان (اختياري)</label><input type="text" id="adLink" placeholder="https://..."></div>
+                        <div class="form-group"><label>اسم المعلن</label><input type="text" id="advertiserName" required></div>
+                        <div class="form-group"><label>رقم الهاتف</label><input type="text" id="advertiserPhone"></div>
+                        <div class="form-group"><label>البريد الإلكتروني</label><input type="email" id="advertiserEmail"></div>
+                        <button type="submit">💰 نشر الإعلان الممول</button>
+                    </form>
+                </div>
+            `;
+            document.getElementById('adForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData();
+                formData.append('title', document.getElementById('adTitle').value);
+                formData.append('description', document.getElementById('adDesc').value);
+                formData.append('link_url', document.getElementById('adLink').value);
+                formData.append('advertiser_name', document.getElementById('advertiserName').value);
+                formData.append('advertiser_phone', document.getElementById('advertiserPhone').value);
+                formData.append('advertiser_email', document.getElementById('advertiserEmail').value);
+                const file = document.getElementById('adFile').files[0];
+                if (file) formData.append('file', file);
+                try {
+                    const res = await fetch('/api/admin/external-ad', { method: 'POST', body: formData });
+                    const result = await res.json();
+                    alert(result.message || (result.error ? '❌ ' + result.error : 'تم النشر'));
+                    if (res.ok) {
+                        document.getElementById('adForm').reset();
+                        loadMyAds();
+                    }
+                } catch(e) {
+                    alert('فشل النشر');
+                    console.error(e);
+                }
+            });
+        }
+
+        // التنقل بين القوائم الجانبية
+        document.querySelectorAll('.sidebar-menu .menu-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelectorAll('.sidebar-menu .menu-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                const section = this.dataset.section;
+                document.getElementById('marketContent').style.display = 'none';
+                document.getElementById('dashboardContent').style.display = 'block';
+                if (section === 'my-ads') loadMyAds();
+                else if (section === 'add-ad') showAddAd();
+            });
+        });
+
+        // عرض التبويبات العلوية افتراضياً
+        document.getElementById('dashboardContent').style.display = 'none';
+        loadMarketData('ads');
+
+        function logout() {
+            if (confirm('تسجيل الخروج؟')) {
+                fetch('/api/logout', { method: 'POST' }).then(() => window.location.href = '/');
+            }
+        }
+    </script>
+</body>
+</html>
