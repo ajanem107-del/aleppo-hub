@@ -10,13 +10,15 @@ const fs = require('fs');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// ===== رابط قاعدة البيانات =====
 const MONGODB_URI = 'mongodb+srv://ajanem107_db_user:a12s12d12@cluster0.za1bebp.mongodb.net/?retryWrites=true&w=majority';
 
+// ===== الاتصال بقاعدة البيانات =====
 mongoose.connect(MONGODB_URI)
   .then(() => console.log('✅ تم الاتصال بـ MongoDB بنجاح'))
   .catch(err => console.error('❌ فشل الاتصال:', err));
 
-// ===== إعداد رفع الملفات =====
+// ===== إعداد رفع الملفات (صور وفيديوهات) =====
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         const uploadPath = 'public/uploads/';
@@ -42,13 +44,19 @@ const upload = multer({ storage, fileFilter, limits: { fileSize: 50 * 1024 * 102
 
 // ===== Middleware =====
 app.use(bodyParser.json());
+
+// ===== ⭐ هذا هو السطر الأساسي لتقديم الملفات الثابتة (CSS, JS, صور) =====
 app.use(express.static(path.join(__dirname, 'public')));
+
+// ===== خدمة مجلد uploads =====
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+
+// ===== جلسات المستخدم =====
 app.use(session({
   secret: 'aleppo_industrial_secret_key_2026',
   resave: false,
   saveUninitialized: true,
-  cookie: { secure: false }
+  cookie: { secure: false } // استخدم true إذا كان لديك HTTPS
 }));
 
 // ============================================================
@@ -91,7 +99,7 @@ function isRole(role) {
 }
 
 // ============================================================
-// حماية جميع اللوحات
+// حماية جميع اللوحات (تتطلب تسجيل الدخول)
 // ============================================================
 app.get('/industrial-panel.html', requireAuth);
 app.get('/worker-panel.html', requireAuth);
@@ -340,7 +348,7 @@ app.post('/api/jobs', isAuthenticated, isRole('industrial'), upload.single('file
     await job.save();
     res.status(201).json({ message: '✅ تم نشر الوظيفة، تنتظر موافقة الإدارة', job });
   } catch (err) {
-    console.error('خطأ في نشر الوظيفة:', err);
+    console.error('خطأ في نشر الوFunction:', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -377,7 +385,7 @@ app.put('/api/application/:id', isAuthenticated, isRole('industrial'), async (re
 });
 
 // ============================================================
-// واجهات الأدمن مع تصحيح استعلام الطلبات المعلقة
+// واجهات الأدمن (مع تصحيح استعلام الطلبات المعلقة)
 // ============================================================
 app.get('/api/admin/pending-requests', isAuthenticated, isRole('admin'), async (req, res) => {
   try {
@@ -459,7 +467,7 @@ app.delete('/api/admin/reject/:type/:id', isAuthenticated, isRole('admin'), asyn
 });
 
 // ============================================================
-// واجهات الإعلانات الممولة
+// واجهات الإعلانات الممولة (مع رفع الصور)
 // ============================================================
 app.post('/api/admin/external-ad', isAuthenticated, isRole('admin'), upload.single('file'), async (req, res) => {
   try {
@@ -572,6 +580,224 @@ app.get('/api/external-ads', async (req, res) => {
     res.json(ads);
   } catch (err) {
     console.error('خطأ في جلب الإعلانات للعرض العام:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ============================================================
+// واجهات المستخدمين لإدارة الملفات الشخصية (اختصار)
+// ============================================================
+app.get('/api/my-applications', isAuthenticated, isRole('worker'), async (req, res) => {
+  try {
+    const apps = await Application.find({ worker_id: req.session.userId })
+      .populate('job_id', 'title');
+    res.json(apps);
+  } catch (err) {
+    console.error('خطأ في جلب طلباتي:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/my-services', isAuthenticated, isRole('provider'), async (req, res) => {
+  try {
+    const services = await Service.find({ provider_id: req.session.userId });
+    res.json(services);
+  } catch (err) {
+    console.error('خطأ في جلب خدماتي:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/service-requests/received', isAuthenticated, isRole('provider'), async (req, res) => {
+  try {
+    const services = await Service.find({ provider_id: req.session.userId });
+    const serviceIds = services.map(s => s._id);
+    const requests = await ServiceRequest.find({ service_id: { $in: serviceIds } })
+      .populate('service_id', 'title')
+      .populate('requester_id', 'name phone');
+    res.json(requests);
+  } catch (err) {
+    console.error('خطأ في جلب طلبات الخدمات:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/apply', isAuthenticated, isRole('worker'), upload.single('file'), async (req, res) => {
+  try {
+    const { job_id, message } = req.body;
+    const existing = await Application.findOne({ job_id, worker_id: req.session.userId });
+    if (existing) return res.status(409).json({ error: 'لقد تقدمت لهذه الوظيفة مسبقاً' });
+    const file_url = req.file ? `/uploads/${req.file.filename}` : '';
+    const file_type = req.file ? (req.file.mimetype === 'application/pdf' ? 'pdf' : 'image') : '';
+    const app = new Application({
+      job_id,
+      worker_id: req.session.userId,
+      message,
+      file_url,
+      file_type,
+      is_approved: false,
+      status: 'pending'
+    });
+    await app.save();
+    res.status(201).json({ message: '✅ تم التقدم للوظيفة، ينتظر موافقة الإدارة' });
+  } catch (err) {
+    console.error('خطأ في التقدم للوظيفة:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/service-request', isAuthenticated, upload.single('file'), async (req, res) => {
+  try {
+    const { service_id, message } = req.body;
+    const user = await User.findById(req.session.userId);
+    const existing = await ServiceRequest.findOne({ service_id, requester_id: req.session.userId });
+    if (existing) return res.status(409).json({ error: 'لقد طلبت هذه الخدمة مسبقاً' });
+    const file_url = req.file ? `/uploads/${req.file.filename}` : '';
+    const file_type = req.file ? (req.file.mimetype.startsWith('video') ? 'video' : 'image') : '';
+    const sr = new ServiceRequest({
+      service_id,
+      requester_id: req.session.userId,
+      requester_role: user.role,
+      message,
+      file_url,
+      file_type,
+      is_approved: false,
+      status: 'pending'
+    });
+    await sr.save();
+    res.status(201).json({ message: '✅ تم إرسال طلب الخدمة، ينتظر موافقة الإدارة' });
+  } catch (err) {
+    console.error('خطأ في طلب الخدمة:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ============================================================
+// واجهات المسؤول لإدارة المحتوى (عرض وحذف)
+// ============================================================
+app.get('/api/admin/users', isAuthenticated, isRole('admin'), async (req, res) => {
+  try {
+    const users = await User.find().select('-password');
+    res.json(users);
+  } catch (err) {
+    console.error('خطأ في جلب المستخدمين:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/admin/all-products', isAuthenticated, isRole('admin'), async (req, res) => {
+  try {
+    const products = await Product.find().populate('industrial_id', 'name company_name');
+    res.json(products);
+  } catch (err) {
+    console.error('خطأ في جلب جميع المنتجات:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/admin/all-jobs', isAuthenticated, isRole('admin'), async (req, res) => {
+  try {
+    const jobs = await Job.find().populate('industrial_id', 'name company_name');
+    res.json(jobs);
+  } catch (err) {
+    console.error('خطأ في جلب جميع الوظائف:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/admin/all-services', isAuthenticated, isRole('admin'), async (req, res) => {
+  try {
+    const services = await Service.find().populate('provider_id', 'name');
+    res.json(services);
+  } catch (err) {
+    console.error('خطأ في جلب جميع الخدمات:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/admin/all-applications', isAuthenticated, isRole('admin'), async (req, res) => {
+  try {
+    const applications = await Application.find().populate('job_id', 'title').populate('worker_id', 'name');
+    res.json(applications);
+  } catch (err) {
+    console.error('خطأ في جلب جميع طلبات التوظيف:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/admin/all-service-requests', isAuthenticated, isRole('admin'), async (req, res) => {
+  try {
+    const requests = await ServiceRequest.find().populate('service_id', 'title').populate('requester_id', 'name');
+    res.json(requests);
+  } catch (err) {
+    console.error('خطأ في جلب جميع طلبات الخدمات:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/admin/users/:id', isAuthenticated, isRole('admin'), async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ error: 'مستخدم غير موجود' });
+    await Product.deleteMany({ industrial_id: user._id });
+    await Job.deleteMany({ industrial_id: user._id });
+    await Service.deleteMany({ provider_id: user._id });
+    await Application.deleteMany({ worker_id: user._id });
+    await ServiceRequest.deleteMany({ requester_id: user._id });
+    await User.findByIdAndDelete(user._id);
+    res.json({ message: '✅ تم حذف المستخدم وجميع محتوياته' });
+  } catch (err) {
+    console.error('خطأ في حذف المستخدم:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/admin/products/:id', isAuthenticated, isRole('admin'), async (req, res) => {
+  try {
+    await Product.findByIdAndDelete(req.params.id);
+    res.json({ message: '✅ تم حذف المنتج' });
+  } catch (err) {
+    console.error('خطأ في حذف المنتج:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/admin/jobs/:id', isAuthenticated, isRole('admin'), async (req, res) => {
+  try {
+    await Job.findByIdAndDelete(req.params.id);
+    res.json({ message: '✅ تم حذف الوظيفة' });
+  } catch (err) {
+    console.error('خطأ في حذف الوظيفة:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/admin/services/:id', isAuthenticated, isRole('admin'), async (req, res) => {
+  try {
+    await Service.findByIdAndDelete(req.params.id);
+    res.json({ message: '✅ تم حذف الخدمة' });
+  } catch (err) {
+    console.error('خطأ في حذف الخدمة:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/admin/applications/:id', isAuthenticated, isRole('admin'), async (req, res) => {
+  try {
+    await Application.findByIdAndDelete(req.params.id);
+    res.json({ message: '✅ تم حذف طلب التوظيف' });
+  } catch (err) {
+    console.error('خطأ في حذف طلب التوظيف:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/admin/service-requests/:id', isAuthenticated, isRole('admin'), async (req, res) => {
+  try {
+    await ServiceRequest.findByIdAndDelete(req.params.id);
+    res.json({ message: '✅ تم حذف طلب الخدمة' });
+  } catch (err) {
+    console.error('خطأ في حذف طلب الخدمة:', err);
     res.status(500).json({ error: err.message });
   }
 });
