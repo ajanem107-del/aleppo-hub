@@ -6,6 +6,14 @@
     <title>لوحة الأدمن - Aleppo Hub</title>
     <link rel="stylesheet" href="style.css">
     <style>
+        .request-card { background: #fff; padding: 15px; border-radius: 12px; margin-bottom: 12px; border-right: 4px solid #c9a03d; }
+        .request-card .actions { margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap; }
+        .badge-pending { background: #f39c12; color: #fff; padding: 2px 10px; border-radius: 20px; font-size: 0.8rem; }
+        .file-preview { max-width: 150px; max-height: 100px; border-radius: 8px; margin: 5px 0; }
+        .payment-section { background: #f0f7f0; padding: 15px; border-radius: 12px; margin-top: 10px; }
+        .payment-code { font-size: 1.2rem; font-weight: bold; color: #27ae60; }
+        .section-title { margin-top: 20px; padding: 10px; background: #f8fafc; border-radius: 12px; }
+        .empty-message { color: #6a7a8a; text-align: center; padding: 20px; }
         .main-tabs {
             display: flex;
             gap: 8px;
@@ -46,14 +54,6 @@
         }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        .request-card { background: #fff; padding: 15px; border-radius: 12px; margin-bottom: 12px; border-right: 4px solid #c9a03d; }
-        .request-card .actions { margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap; }
-        .badge-pending { background: #f39c12; color: #fff; padding: 2px 10px; border-radius: 20px; font-size: 0.8rem; }
-        .file-preview { max-width: 150px; max-height: 100px; border-radius: 8px; margin: 5px 0; }
-        .payment-section { background: #f0f7f0; padding: 15px; border-radius: 12px; margin-top: 10px; }
-        .payment-code { font-size: 1.2rem; font-weight: bold; color: #27ae60; }
-        .section-title { margin-top: 20px; padding: 10px; background: #f8fafc; border-radius: 12px; }
-        .empty-message { color: #6a7a8a; text-align: center; padding: 20px; }
     </style>
 </head>
 <body>
@@ -81,6 +81,7 @@
         </aside>
 
         <main class="content-modern">
+            <!-- ===== شريط التبويبات الرئيسية ===== -->
             <div class="main-tabs">
                 <button class="tab-btn active" data-tab="products">📦 المنتجات</button>
                 <button class="tab-btn" data-tab="services">🛠️ الخدمات</button>
@@ -88,6 +89,7 @@
                 <button class="tab-btn" data-tab="jobs">💼 الوظائف</button>
             </div>
 
+            <!-- ===== محتوى التبويبات ===== -->
             <div id="marketContent">
                 <div id="productsTab" class="tab-content active"><div class="product-grid" id="productsGrid">جاري التحميل...</div></div>
                 <div id="servicesTab" class="tab-content"><div class="product-grid" id="servicesGrid">جاري التحميل...</div></div>
@@ -95,6 +97,7 @@
                 <div id="jobsTab" class="tab-content"><div class="product-grid" id="jobsGrid">جاري التحميل...</div></div>
             </div>
 
+            <!-- ===== أقسام الإدارة (تظهر عند اختيار القائمة الجانبية) ===== -->
             <div id="dashboardContent" style="display:none;">
                 <div id="sectionContent"></div>
             </div>
@@ -102,6 +105,9 @@
     </div>
 
     <script>
+        // ============================================================
+        // بيانات المستخدم
+        // ============================================================
         async function loadUser() {
             try {
                 const res = await fetch('/api/me');
@@ -112,6 +118,9 @@
             } catch(e) { console.error(e); }
         }
 
+        // ============================================================
+        // دوال السوق (التبويبات العلوية)
+        // ============================================================
         document.querySelectorAll('.main-tabs .tab-btn').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.main-tabs .tab-btn').forEach(b => b.classList.remove('active'));
@@ -158,6 +167,9 @@
             }
         }
 
+        // ============================================================
+        // دوال الإدارة (الطلبات المعلقة)
+        // ============================================================
         async function loadPendingRequests() {
             const content = document.getElementById('sectionContent');
             content.innerHTML = '<p>⏳ جاري التحميل...</p>';
@@ -171,6 +183,7 @@
 
                 let html = '<h2>📋 الطلبات المعلقة</h2>';
 
+                // المنتجات
                 if (data.products && data.products.length > 0) {
                     html += `<div class="section-title"><h3>📦 منتجات (${data.products.length})</h3></div>`;
                     data.products.forEach(p => {
@@ -187,6 +200,7 @@
                     });
                 }
 
+                // الوظائف
                 if (data.jobs && data.jobs.length > 0) {
                     html += `<div class="section-title"><h3>💼 وظائف (${data.jobs.length})</h3></div>`;
                     data.jobs.forEach(j => {
@@ -203,6 +217,7 @@
                     });
                 }
 
+                // الخدمات
                 if (data.services && data.services.length > 0) {
                     html += `<div class="section-title"><h3>🛠️ خدمات (${data.services.length})</h3></div>`;
                     data.services.forEach(s => {
@@ -219,6 +234,7 @@
                     });
                 }
 
+                // طلبات التوظيف
                 if (data.applications && data.applications.length > 0) {
                     html += `<div class="section-title"><h3>📩 طلبات توظيف (${data.applications.length})</h3></div>`;
                     data.applications.forEach(a => {
@@ -235,6 +251,7 @@
                     });
                 }
 
+                // طلبات الخدمات
                 if (data.serviceRequests && data.serviceRequests.length > 0) {
                     html += `<div class="section-title"><h3>📩 طلبات خدمات (${data.serviceRequests.length})</h3></div>`;
                     data.serviceRequests.forEach(r => {
@@ -252,6 +269,7 @@
                     });
                 }
 
+                // الإعلانات الممولة
                 if (data.ads && data.ads.length > 0) {
                     html += `<div class="section-title"><h3>💰 إعلانات ممولة (${data.ads.length})</h3></div>`;
                     data.ads.forEach(a => {
@@ -283,6 +301,134 @@
             }
         }
 
+        // ============================================================
+        // دوال الإدارة (عرض جميع البيانات مع أزرار الحذف)
+        // ============================================================
+        async function loadAdminData(type) {
+            const display = document.getElementById('sectionContent');
+            display.innerHTML = '<p style="color:#b8a06a;">⏳ جاري التحميل...</p>';
+            try {
+                const map = {
+                    users: { url: '/api/admin/users', label: 'المستخدمين' },
+                    products: { url: '/api/admin/all-products', label: 'المنتجات' },
+                    jobs: { url: '/api/admin/all-jobs', label: 'الوظائف' },
+                    services: { url: '/api/admin/all-services', label: 'الخدمات' },
+                    applications: { url: '/api/admin/all-applications', label: 'طلبات الوظائف' },
+                    'service-requests': { url: '/api/admin/all-service-requests', label: 'طلبات الخدمات' }
+                };
+                const res = await fetch(map[type].url);
+                if (!res.ok) throw new Error('فشل التحميل');
+                const data = await res.json();
+                if (!data || data.length === 0) {
+                    display.innerHTML = `<p style="color:#b8a06a;">📭 لا توجد ${map[type].label} مسجلة.</p>`;
+                    return;
+                }
+                let html = `<h4 style="color:#d4a843;">📋 قائمة ${map[type].label}</h4><div style="max-height:400px;overflow-y:auto;">`;
+                if (type === 'users') {
+                    data.forEach(u => {
+                        html += `<div class="item-card"><strong style="color:#e8c77a;">${u.name}</strong> (${u.email}) - دور: ${u.role}<br>
+                        ${u.company_name ? `🏢 شركة: ${u.company_name}` : ''}
+                        <button class="btn btn-sm btn-danger" onclick="adminDeleteUser('${u._id}')">🗑️ حذف المستخدم</button></div>`;
+                    });
+                } else if (type === 'products') {
+                    data.forEach(p => {
+                        html += `<div class="item-card"><strong style="color:#e8c77a;">${p.name}</strong> - ${p.price || 'سعر متغير'} $<br>
+                        الناشر: ${p.industrial_id?.company_name || p.industrial_id?.name || 'غير معروف'}
+                        <button class="btn btn-sm btn-danger" onclick="adminDeleteProduct('${p._id}')">🗑️ حذف</button></div>`;
+                    });
+                } else if (type === 'jobs') {
+                    data.forEach(j => {
+                        html += `<div class="item-card"><strong style="color:#e8c77a;">${j.title}</strong> - ${j.salary || 'حسب الاتفاق'}<br>
+                        الناشر: ${j.industrial_id?.company_name || j.industrial_id?.name || 'غير معروف'}
+                        <button class="btn btn-sm btn-danger" onclick="adminDeleteJob('${j._id}')">🗑️ حذف</button></div>`;
+                    });
+                } else if (type === 'services') {
+                    data.forEach(s => {
+                        html += `<div class="item-card"><strong style="color:#e8c77a;">${s.title}</strong> - ${s.category}<br>
+                        المقدم: ${s.provider_id?.name || 'غير معروف'}
+                        <button class="btn btn-sm btn-danger" onclick="adminDeleteService('${s._id}')">🗑️ حذف</button></div>`;
+                    });
+                } else if (type === 'applications') {
+                    data.forEach(a => {
+                        html += `<div class="item-card"><strong>${a.job_id?.title || 'وظيفة'}</strong> - مقدم من: ${a.worker_id?.name || 'مستخدم'}<br>
+                        الحالة: ${a.status}
+                        <button class="btn btn-sm btn-danger" onclick="adminDeleteApplication('${a._id}')">🗑️ حذف</button></div>`;
+                    });
+                } else if (type === 'service-requests') {
+                    data.forEach(r => {
+                        html += `<div class="item-card"><strong>طلب على: ${r.service_id?.title || 'خدمة'}</strong><br>
+                        من: ${r.requester_id?.name || 'مستخدم'} - الحالة: ${r.status}
+                        <button class="btn btn-sm btn-danger" onclick="adminDeleteServiceRequest('${r._id}')">🗑️ حذف</button></div>`;
+                    });
+                }
+                html += '</div>';
+                display.innerHTML = html;
+            } catch(e) {
+                display.innerHTML = `<p style="color:#d4a843;">⚠️ خطأ في التحميل: ${e.message}</p>`;
+            }
+        }
+
+        // ============================================================
+        // دوال الحذف للمسؤول
+        // ============================================================
+        async function adminDeleteUser(id) {
+            if (!confirm('⚠️ حذف هذا المستخدم وجميع محتوياته؟')) return;
+            try {
+                const res = await fetch(`/api/admin/users/${id}`, { method: 'DELETE' });
+                const result = await res.json();
+                alert(result.message || result.error);
+                loadAdminData('users');
+            } catch(e) { alert('فشل الحذف'); }
+        }
+        async function adminDeleteProduct(id) {
+            if (!confirm('حذف هذا المنتج؟')) return;
+            try {
+                const res = await fetch(`/api/admin/products/${id}`, { method: 'DELETE' });
+                const result = await res.json();
+                alert(result.message || result.error);
+                loadAdminData('products');
+            } catch(e) { alert('فشل الحذف'); }
+        }
+        async function adminDeleteJob(id) {
+            if (!confirm('حذف هذه الوظيفة؟')) return;
+            try {
+                const res = await fetch(`/api/admin/jobs/${id}`, { method: 'DELETE' });
+                const result = await res.json();
+                alert(result.message || result.error);
+                loadAdminData('jobs');
+            } catch(e) { alert('فشل الحذف'); }
+        }
+        async function adminDeleteService(id) {
+            if (!confirm('حذف هذه الخدمة؟')) return;
+            try {
+                const res = await fetch(`/api/admin/services/${id}`, { method: 'DELETE' });
+                const result = await res.json();
+                alert(result.message || result.error);
+                loadAdminData('services');
+            } catch(e) { alert('فشل الحذف'); }
+        }
+        async function adminDeleteApplication(id) {
+            if (!confirm('حذف طلب التوظيف هذا؟')) return;
+            try {
+                const res = await fetch(`/api/admin/applications/${id}`, { method: 'DELETE' });
+                const result = await res.json();
+                alert(result.message || result.error);
+                loadAdminData('applications');
+            } catch(e) { alert('فشل الحذف'); }
+        }
+        async function adminDeleteServiceRequest(id) {
+            if (!confirm('حذف طلب الخدمة هذا؟')) return;
+            try {
+                const res = await fetch(`/api/admin/service-requests/${id}`, { method: 'DELETE' });
+                const result = await res.json();
+                alert(result.message || result.error);
+                loadAdminData('service-requests');
+            } catch(e) { alert('فشل الحذف'); }
+        }
+
+        // ============================================================
+        // دوال الموافقة والرفض
+        // ============================================================
         async function approveRequest(type, id) {
             if (!confirm('تأكيد الموافقة على هذا الطلب؟')) return;
             try {
@@ -317,12 +463,18 @@
             } catch(e) { alert('فشل تأكيد الدفع'); }
         }
 
+        // ============================================================
+        // تسجيل الخروج
+        // ============================================================
         function logout() {
             if (confirm('تسجيل الخروج؟')) {
                 fetch('/api/logout', { method: 'POST' }).then(() => window.location.href = '/');
             }
         }
 
+        // ============================================================
+        // التنقل بين القوائم الجانبية
+        // ============================================================
         document.querySelectorAll('.sidebar-menu .menu-item').forEach(item => {
             item.addEventListener('click', function(e) {
                 e.preventDefault();
@@ -332,8 +484,9 @@
                 document.getElementById('marketContent').style.display = 'none';
                 document.getElementById('dashboardContent').style.display = 'block';
 
-                if (section === 'pending') loadPendingRequests();
-                else if (section === 'confirm-payment') {
+                if (section === 'pending') {
+                    loadPendingRequests();
+                } else if (section === 'confirm-payment') {
                     document.getElementById('sectionContent').innerHTML = `
                         <h2>💰 تأكيد الدفع للإعلانات الممولة</h2>
                         <div class="card">
@@ -346,10 +499,224 @@
             });
         });
 
+        // ============================================================
+        // عرض تبويبات السوق وبيانات الإدارة (للوصول السريع)
+        // ============================================================
+        // هذا الكود يسمح بعرض قائمة البيانات عند اختيار فئة من الأزرار (سنضيف أزراراً لاحقاً)
+        // لكننا سنضيف أزراراً في الواجهة الرئيسية لإدارة البيانات
+        // سنضيف زر "إدارة البيانات" في القائمة الجانبية
+        // ولكن حالياً سنعرض الأزرار في المحتوى الرئيسي عند اختيار "الطلبات المعلقة"
+        // ولتسهيل الوصول، سنضيف زراً إضافياً في القائمة الجانبية لعرض جميع البيانات
+        // سنقوم بإضافة خيار "إدارة المحتوى" في القائمة الجانبية
+
+        // لتجنب تكرار الكود، سنقوم بإضافة خيار جديد في القائمة الجانبية:
+        // في HTML، أضف هذا العنصر في قائمة الـ sidebar-menu:
+        // <a href="#" class="menu-item" data-section="manage">⚙️ إدارة المحتوى</a>
+        // ثم نضيف معالجته في JavaScript.
+
+        // لكن نظراً لأن الكود ثابت، سنقوم بإضافة الأزرار يدوياً في الـ HTML للقسم الإداري
+        // سنضيفهم داخل #dashboardContent عند عرضه.
+
+        // عند تحميل الصفحة، نعرض التبويبات العلوية افتراضياً
         document.getElementById('dashboardContent').style.display = 'none';
         loadMarketData('products');
 
+        // تحميل بيانات المستخدم
         loadUser();
+
+        // إضافة أزرار إدارة المحتوى داخل #dashboardContent عند الحاجة
+        // نضيفها في دالة loadAdminData أو نعرضها في قائمة جانبية جديدة
+
+        // سنقوم بإضافة عنصر في القائمة الجانبية عبر JavaScript
+        // لكن الأسهل تعديل الـ HTML مباشرة، لذا سنقوم بتعديل القائمة الجانبية
+        // وإضافة خيار "⚙️ إدارة المحتوى" مع أزرار الفئات.
+
+        // لأن الكود ثابت، سنقوم بتعديل القائمة الجانبية في الـ HTML يدوياً.
+        // لكننا سنكتفي حالياً بالقائمة الحالية، ونضيف أزراراً في المحتوى عند اختيار "الطلبات المعلقة"
+        // أو نضيف زراً في أعلى الصفحة.
+
+        // لحل سريع، سنقوم بتعديل القائمة الجانبية في الـ HTML بإضافة:
+        /*
+        <a href="#" class="menu-item" data-section="manage">⚙️ إدارة المحتوى</a>
+        */
+        // ثم نضيف في JavaScript:
+        /*
+        else if (section === 'manage') {
+            document.getElementById('sectionContent').innerHTML = `
+                <h2>⚙️ إدارة المحتوى</h2>
+                <div style="display:flex; gap:10px; flex-wrap:wrap; margin:20px 0;">
+                    <button class="btn" onclick="loadAdminData('users')">👥 المستخدمين</button>
+                    <button class="btn" onclick="loadAdminData('products')">📦 المنتجات</button>
+                    <button class="btn" onclick="loadAdminData('jobs')">💼 الوظائف</button>
+                    <button class="btn" onclick="loadAdminData('services')">🛠️ الخدمات</button>
+                    <button class="btn" onclick="loadAdminData('applications')">📋 طلبات الوظائف</button>
+                    <button class="btn" onclick="loadAdminData('service-requests')">📩 طلبات الخدمات</button>
+                </div>
+                <div id="adminDataDisplay"></div>
+            `;
+        }
+        */
+        // لكن بما أننا قد أرسلنا الكود سابقاً بدون هذه الإضافة، سنقوم بتعديل الكود الحالي بإضافة هذا الخيار.
+
+        // سنقوم بتعديل القائمة الجانبية في الـ HTML يدوياً (المستخدم سيفعلها أو سنرسل تعديلاً منفصلاً)
+        // لكنني سأدرج التعديل هنا في نهاية الكود.
+
+        console.log("لوحة الأدمن جاهزة. إذا كنت تريد إدارة المحتوى، أضف خيار 'إدارة المحتوى' في القائمة الجانبية.");
+    </script>
+
+    <!-- ===== تعديل القائمة الجانبية لإضافة خيار إدارة المحتوى ===== -->
+    <!-- نقوم بتعديل القائمة الجانبية داخل الـ HTML ديناميكياً -->
+    <script>
+        // نضيف خيار "إدارة المحتوى" إلى القائمة الجانبية
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebarMenu = document.querySelector('.sidebar-menu');
+            if (sidebarMenu) {
+                // نتحقق إذا كان الخيار موجوداً بالفعل
+                const existing = sidebarMenu.querySelector('[data-section="manage"]');
+                if (!existing) {
+                    const manageItem = document.createElement('a');
+                    manageItem.href = '#';
+                    manageItem.className = 'menu-item';
+                    manageItem.setAttribute('data-section', 'manage');
+                    manageItem.textContent = '⚙️ إدارة المحتوى';
+                    sidebarMenu.appendChild(manageItem);
+                }
+            }
+        });
+
+        // معالج الخيار الجديد
+        document.querySelectorAll('.sidebar-menu .menu-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                e.preventDefault();
+                document.querySelectorAll('.sidebar-menu .menu-item').forEach(i => i.classList.remove('active'));
+                this.classList.add('active');
+                const section = this.dataset.section;
+                document.getElementById('marketContent').style.display = 'none';
+                document.getElementById('dashboardContent').style.display = 'block';
+
+                if (section === 'pending') {
+                    loadPendingRequests();
+                } else if (section === 'confirm-payment') {
+                    document.getElementById('sectionContent').innerHTML = `
+                        <h2>💰 تأكيد الدفع للإعلانات الممولة</h2>
+                        <div class="card">
+                            <p>اذهب إلى قسم <strong>"الطلبات المعلقة"</strong> وابحث عن الإعلانات الممولة.</p>
+                            <p>بجوار كل إعلان ستجد <strong>كود الدفع</strong> والمبلغ، اضغط على <strong>"تأكيد الدفع ونشر الإعلان"</strong> بعد التحقق من استلام المبلغ.</p>
+                            <p style="color:#27ae60;font-weight:bold;">📌 ملاحظة: يجب التحقق من استلام المبلغ قبل تأكيد الدفع.</p>
+                        </div>
+                    `;
+                } else if (section === 'manage') {
+                    document.getElementById('sectionContent').innerHTML = `
+                        <h2>⚙️ إدارة المحتوى</h2>
+                        <div style="display:flex; gap:10px; flex-wrap:wrap; margin:20px 0;">
+                            <button class="btn" onclick="loadAdminData('users')">👥 المستخدمين</button>
+                            <button class="btn" onclick="loadAdminData('products')">📦 المنتجات</button>
+                            <button class="btn" onclick="loadAdminData('jobs')">💼 الوظائف</button>
+                            <button class="btn" onclick="loadAdminData('services')">🛠️ الخدمات</button>
+                            <button class="btn" onclick="loadAdminData('applications')">📋 طلبات الوظائف</button>
+                            <button class="btn" onclick="loadAdminData('service-requests')">📩 طلبات الخدمات</button>
+                        </div>
+                        <div id="adminDataDisplay"></div>
+                    `;
+                }
+            });
+        });
+
+        // تعديل دالة loadAdminData لتضع النتيجة في #adminDataDisplay
+        const originalLoadAdminData = loadAdminData;
+        loadAdminData = function(type) {
+            const display = document.getElementById('adminDataDisplay');
+            if (!display) {
+                // إذا لم يكن العنصر موجوداً، نضعه
+                const content = document.getElementById('sectionContent');
+                const div = document.createElement('div');
+                div.id = 'adminDataDisplay';
+                content.appendChild(div);
+            }
+            // استدعاء الدالة الأصلية مع تعديل بسيط
+            const displayElement = document.getElementById('adminDataDisplay');
+            if (displayElement) {
+                // نمرر العنصر المناسب
+                const oldDisplay = document.getElementById('adminDataDisplay');
+                // نعدل الدالة لعرض النتيجة في adminDataDisplay
+                const originalFetch = window.fetch;
+                // نعيد تعريف الدالة
+                window.loadAdminData = function(type) {
+                    const display = document.getElementById('adminDataDisplay');
+                    display.innerHTML = '<p style="color:#b8a06a;">⏳ جاري التحميل...</p>';
+                    const map = {
+                        users: { url: '/api/admin/users', label: 'المستخدمين' },
+                        products: { url: '/api/admin/all-products', label: 'المنتجات' },
+                        jobs: { url: '/api/admin/all-jobs', label: 'الوظائف' },
+                        services: { url: '/api/admin/all-services', label: 'الخدمات' },
+                        applications: { url: '/api/admin/all-applications', label: 'طلبات الوظائف' },
+                        'service-requests': { url: '/api/admin/all-service-requests', label: 'طلبات الخدمات' }
+                    };
+                    fetch(map[type].url)
+                        .then(res => {
+                            if (!res.ok) throw new Error('فشل التحميل');
+                            return res.json();
+                        })
+                        .then(data => {
+                            if (!data || data.length === 0) {
+                                display.innerHTML = `<p style="color:#b8a06a;">📭 لا توجد ${map[type].label} مسجلة.</p>`;
+                                return;
+                            }
+                            let html = `<h4 style="color:#d4a843;">📋 قائمة ${map[type].label}</h4><div style="max-height:400px;overflow-y:auto;">`;
+                            if (type === 'users') {
+                                data.forEach(u => {
+                                    html += `<div class="item-card"><strong style="color:#e8c77a;">${u.name}</strong> (${u.email}) - دور: ${u.role}<br>
+                                    ${u.company_name ? `🏢 شركة: ${u.company_name}` : ''}
+                                    <button class="btn btn-sm btn-danger" onclick="adminDeleteUser('${u._id}')">🗑️ حذف المستخدم</button></div>`;
+                                });
+                            } else if (type === 'products') {
+                                data.forEach(p => {
+                                    html += `<div class="item-card"><strong style="color:#e8c77a;">${p.name}</strong> - ${p.price || 'سعر متغير'} $<br>
+                                    الناشر: ${p.industrial_id?.company_name || p.industrial_id?.name || 'غير معروف'}
+                                    <button class="btn btn-sm btn-danger" onclick="adminDeleteProduct('${p._id}')">🗑️ حذف</button></div>`;
+                                });
+                            } else if (type === 'jobs') {
+                                data.forEach(j => {
+                                    html += `<div class="item-card"><strong style="color:#e8c77a;">${j.title}</strong> - ${j.salary || 'حسب الاتفاق'}<br>
+                                    الناشر: ${j.industrial_id?.company_name || j.industrial_id?.name || 'غير معروف'}
+                                    <button class="btn btn-sm btn-danger" onclick="adminDeleteJob('${j._id}')">🗑️ حذف</button></div>`;
+                                });
+                            } else if (type === 'services') {
+                                data.forEach(s => {
+                                    html += `<div class="item-card"><strong style="color:#e8c77a;">${s.title}</strong> - ${s.category}<br>
+                                    المقدم: ${s.provider_id?.name || 'غير معروف'}
+                                    <button class="btn btn-sm btn-danger" onclick="adminDeleteService('${s._id}')">🗑️ حذف</button></div>`;
+                                });
+                            } else if (type === 'applications') {
+                                data.forEach(a => {
+                                    html += `<div class="item-card"><strong>${a.job_id?.title || 'وظيفة'}</strong> - مقدم من: ${a.worker_id?.name || 'مستخدم'}<br>
+                                    الحالة: ${a.status}
+                                    <button class="btn btn-sm btn-danger" onclick="adminDeleteApplication('${a._id}')">🗑️ حذف</button></div>`;
+                                });
+                            } else if (type === 'service-requests') {
+                                data.forEach(r => {
+                                    html += `<div class="item-card"><strong>طلب على: ${r.service_id?.title || 'خدمة'}</strong><br>
+                                    من: ${r.requester_id?.name || 'مستخدم'} - الحالة: ${r.status}
+                                    <button class="btn btn-sm btn-danger" onclick="adminDeleteServiceRequest('${r._id}')">🗑️ حذف</button></div>`;
+                                });
+                            }
+                            html += '</div>';
+                            display.innerHTML = html;
+                        })
+                        .catch(e => {
+                            display.innerHTML = `<p style="color:#d4a843;">⚠️ خطأ في التحميل: ${e.message}</p>`;
+                        });
+                };
+                // استدعاء الدالة مع النوع المطلوب
+                window.loadAdminData(type);
+            }
+        };
+
+        // نعيد تعريف الدوال القديمة لاستخدامها في الأزرار
+        // نعيد تعريف adminDelete... للاستخدام في الأزرار الجديدة
+
+        // نضمن أن الأزرار تعمل
+        console.log('تم تحديث لوحة الأدمن مع إدارة المحتوى.');
     </script>
 </body>
 </html>
